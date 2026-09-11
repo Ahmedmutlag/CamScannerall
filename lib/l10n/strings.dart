@@ -46,7 +46,11 @@ class AppStrings {
     'splitPdf': {'ar': 'تقسيم PDF', 'en': 'Split PDF'},
     'compressPdf': {'ar': 'ضغط PDF', 'en': 'Compress PDF'},
     'pdfToImages': {'ar': 'PDF إلى صور', 'en': 'PDF to Images'},
-    'toWord': {'ar': 'تحويل إلى Word', 'en': 'Convert to Word'},
+    'toWord': {'ar': 'استخراج النص كملف Word', 'en': 'Extract text as Word file'},
+    'toWordNote': {
+      'ar': 'سيُنشأ ملف Word يحتوي على النص المستخرج بالـ OCR فقط، وليس نسخة طبق الأصل من تصميم الصفحة الأصلية.',
+      'en': 'This creates a Word file with the OCR-extracted text only — not a pixel-perfect copy of the original page layout.',
+    },
     'protectPassword': {'ar': 'حماية بكلمة سر', 'en': 'Protect with password'},
     'extractedText': {'ar': 'النص المستخرج', 'en': 'Extracted Text'},
     'copyText': {'ar': 'نسخ النص', 'en': 'Copy Text'},

@@ -143,7 +143,12 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       context: context,
       builder: (context) => SafeArea(
         child: Wrap(children: [
-          ListTile(leading: const Icon(Icons.description_outlined), title: Text(s.t('toWord')), onTap: () => Navigator.pop(context, 'word')),
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: Text(s.t('toWord')),
+            subtitle: Text(s.t('toWordNote')),
+            onTap: () => Navigator.pop(context, 'word'),
+          ),
           ListTile(leading: const Icon(Icons.image_outlined), title: Text(s.t('pdfToImages')), onTap: () => Navigator.pop(context, 'images')),
           ListTile(leading: const Icon(Icons.call_split), title: Text(s.t('splitPdf')), onTap: () => Navigator.pop(context, 'split')),
           ListTile(leading: const Icon(Icons.compress), title: Text(s.t('compressPdf')), onTap: () => Navigator.pop(context, 'compress')),

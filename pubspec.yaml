@@ -48,9 +48,13 @@ dependencies:
   pointycastle: ^3.9.1
 
   # Camera & imaging
-  camera: ^0.11.0+2
   image: ^4.3.0
-  image_picker: ^1.1.2
+  # Drives the native document scanner UI on each platform: Google ML Kit's
+  # Document Scanner on Android, Apple VisionKit's document camera on iOS.
+  # Both provide a real, live, automatic edge/corner detector — see the
+  # README's "Document edge detection" section for why this replaced a
+  # hand-rolled manual-only crop screen.
+  cunning_document_scanner: ^3.0.2
 
   # OCR
   google_mlkit_text_recognition: ^0.15.0
