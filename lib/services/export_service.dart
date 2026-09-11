@@ -29,6 +29,6 @@ class ExportService {
     filesByName.forEach((name, bytes) {
       archive.addFile(ArchiveFile(name, bytes.length, bytes));
     });
-    return Uint8List.fromList(ZipEncoder().encode(archive)!);
+    return Uint8List.fromList(ZipEncoder().encode(archive));
   }
 }

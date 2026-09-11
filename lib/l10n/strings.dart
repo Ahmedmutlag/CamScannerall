@@ -102,6 +102,7 @@ class AppStrings {
     },
     'understood': {'ar': 'فهمت', 'en': 'Understood'},
     'backupPasswordHint': {'ar': 'كلمة سر النسخة الاحتياطية', 'en': 'Backup password'},
+    'pdfPasswordHint': {'ar': 'كلمة سر فتح الملف', 'en': 'File open password'},
     'backupCreated': {'ar': 'تم إنشاء النسخة الاحتياطية بنجاح', 'en': 'Backup created successfully'},
     'backupReminderBody': {
       'ar': 'مر وقت طويل منذ آخر نسخة احتياطية. يُنصح بإنشاء واحدة جديدة من الإعدادات.',

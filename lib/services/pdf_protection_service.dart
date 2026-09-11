@@ -1,74 +1,24 @@
+import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart' as crypto;
-import 'package:flutter/foundation.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 
-import 'crypto_helper.dart';
-
-/// Password-protects an exported PDF using the same on-device AES-256
-/// primitives as the backup feature. The result is an app-level encrypted
-/// container (`.pdf.enc`): only this app (with the right password) can
-/// decrypt it back into the original PDF. This keeps every crypto path in
-/// the app consistent and fully local, with no dependency on a raw
-/// PDF-standard-security implementation.
+/// Password-protects an exported PDF with real, PDF-standard-security
+/// encryption (AES-256), via Syncfusion's PDF library. Unlike an
+/// app-private encrypted container, the result is a normal .pdf file that
+/// any standard PDF reader (Adobe Acrobat, Google Drive preview, etc.)
+/// will prompt for the password before opening — see the README's
+/// "حماية PDF بكلمة سر" section for the licensing terms this depends on
+/// (Syncfusion's free Community License).
 class PdfProtectionService {
-  static const List<int> _magic = [0x50, 0x44, 0x46, 0x31]; // "PDF1"
-
-  Future<Uint8List> protect(Uint8List pdfBytes, String password) {
-    return compute(_encrypt, {'password': password, 'data': pdfBytes});
-  }
-
-  /// Throws [FormatException] if the password is wrong or the file is
-  /// corrupted.
-  Future<Uint8List> unprotect(Uint8List protectedBytes, String password) {
-    return compute(_decrypt, {'password': password, 'data': protectedBytes});
-  }
-
-  static Uint8List _encrypt(Map<String, dynamic> params) {
-    final password = params['password'] as String;
-    final data = params['data'] as Uint8List;
-
-    final salt = CryptoHelper.randomBytes(CryptoHelper.saltLength);
-    final iv = CryptoHelper.randomBytes(CryptoHelper.ivLength);
-    final key = CryptoHelper.deriveKey(password, salt);
-    final ciphertext = CryptoHelper.encryptAesCbc(key: key, iv: iv, plaintext: data);
-    final macKey = Uint8List.fromList(crypto.sha256.convert([...key, ..."MAC".codeUnits]).bytes);
-    final mac = CryptoHelper.hmac(macKey, ciphertext);
-
-    return Uint8List.fromList([..._magic, ...salt, ...iv, ...mac, ...ciphertext]);
-  }
-
-  static Uint8List _decrypt(Map<String, dynamic> params) {
-    final password = params['password'] as String;
-    final data = params['data'] as Uint8List;
-
-    var offset = 4;
-    final salt = data.sublist(offset, offset + CryptoHelper.saltLength);
-    offset += CryptoHelper.saltLength;
-    final iv = data.sublist(offset, offset + CryptoHelper.ivLength);
-    offset += CryptoHelper.ivLength;
-    final mac = data.sublist(offset, offset + 32);
-    offset += 32;
-    final ciphertext = data.sublist(offset);
-
-    final key = CryptoHelper.deriveKey(password, Uint8List.fromList(salt));
-    final macKey = Uint8List.fromList(crypto.sha256.convert([...key, ..."MAC".codeUnits]).bytes);
-    final expectedMac = CryptoHelper.hmac(macKey, Uint8List.fromList(ciphertext));
-
-    var ok = expectedMac.length == mac.length;
-    if (ok) {
-      for (var i = 0; i < mac.length; i++) {
-        if (expectedMac[i] != mac[i]) {
-          ok = false;
-          break;
-        }
-      }
-    }
-    if (!ok) throw const FormatException('Wrong password or corrupted file');
-
-    return CryptoHelper.decryptAesCbc(
-      key: key,
-      iv: Uint8List.fromList(iv),
-      ciphertext: Uint8List.fromList(ciphertext),
-    );
+  /// Re-encodes [pdfBytes] with [password] as both the open (user) and
+  /// permissions (owner) password, using AES-256.
+  Future<Uint8List> protect(Uint8List pdfBytes, String password) async {
+    final document = PdfDocument(inputBytes: pdfBytes);
+    document.security.algorithm = PdfEncryptionAlgorithm.aesx256Bit;
+    document.security.userPassword = password;
+    document.security.ownerPassword = password;
+    final bytes = await document.save();
+    document.dispose();
+    return Uint8List.fromList(bytes);
   }
 }

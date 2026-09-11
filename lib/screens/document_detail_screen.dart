@@ -226,7 +226,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(s.t('protectPassword')),
-        content: TextField(controller: controller, obscureText: true, decoration: InputDecoration(labelText: s.t('backupPasswordHint'))),
+        content: TextField(controller: controller, obscureText: true, decoration: InputDecoration(labelText: s.t('pdfPasswordHint'))),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(s.t('cancel'))),
           FilledButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(s.t('ok'))),
@@ -236,7 +236,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     if (password == null || password.isEmpty) return;
     final pdfBytes = await appState.pdf.buildPdf(doc.pages.map((p) => p.imagePathHighRes).toList());
     final protectedBytes = await appState.pdfProtection.protect(pdfBytes, password);
-    await appState.share.shareBytes(protectedBytes, '${doc.name}.pdf.enc');
+    await appState.pdf.sharePdf(protectedBytes, filename: '${doc.name}.pdf');
   }
 
   Future<void> _moveOrCopy({required bool move}) async {

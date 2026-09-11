@@ -24,7 +24,7 @@ class DocxExportService {
     addText('docProps/core.xml', _coreXml(title));
     addText('word/document.xml', _documentXml(pagesText));
 
-    final bytes = ZipEncoder().encode(archive)!;
+    final bytes = ZipEncoder().encode(archive);
     return Uint8List.fromList(bytes);
   }
 

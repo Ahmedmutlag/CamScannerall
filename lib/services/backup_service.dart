@@ -70,7 +70,7 @@ class BackupService {
       }
     }
 
-    final zipBytes = Uint8List.fromList(ZipEncoder().encode(archive)!);
+    final zipBytes = Uint8List.fromList(ZipEncoder().encode(archive));
 
     return compute(_encryptPayload, {'password': password, 'data': zipBytes});
   }
