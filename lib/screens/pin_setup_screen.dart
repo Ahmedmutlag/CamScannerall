@@ -1,0 +1,134 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
+import '../app_state.dart';
+import 'splash_screen.dart';
+
+class PinSetupScreen extends StatefulWidget {
+  const PinSetupScreen({super.key, required this.isFirstSetup});
+
+  final bool isFirstSetup;
+
+  @override
+  State<PinSetupScreen> createState() => _PinSetupScreenState();
+}
+
+class _PinSetupScreenState extends State<PinSetupScreen> {
+  final _pinController = TextEditingController();
+  final _confirmController = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final appState = context.read<AppState>();
+    final s = appState.strings;
+    if (_pinController.text.length < 4) {
+      setState(() => _error = s.t('setPin'));
+      return;
+    }
+    if (_pinController.text != _confirmController.text) {
+      setState(() => _error = s.t('pinMismatch'));
+      return;
+    }
+
+    await appState.lock.setPin(_pinController.text);
+
+    if (widget.isFirstSetup) {
+      final biometricAvailable = await appState.lock.biometricAvailable;
+      if (biometricAvailable && mounted) {
+        final enable = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(s.t('enableBiometric')),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: Text(s.t('no'))),
+              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(s.t('yes'))),
+            ],
+          ),
+        );
+        if (enable == true) {
+          await appState.lock.setBiometricEnabled(true);
+        }
+      }
+      if (mounted) await _showPrivacyWarning();
+    }
+
+    if (!mounted) return;
+    appState.lock.markActive();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const PostUnlockGate()),
+    );
+  }
+
+  Future<void> _showPrivacyWarning() async {
+    final s = context.read<AppState>().strings;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(s.t('privacyWarningTitle')),
+        content: Text(s.t('privacyWarningBody')),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(s.t('understood')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.watch<AppState>();
+    final s = appState.strings;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(s.t('setPin'))),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.lock_outline, size: 64),
+            const SizedBox(height: 24),
+            TextField(
+              controller: _pinController,
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              maxLength: 6,
+              textAlign: TextAlign.center,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(labelText: s.t('enterPin')),
+            ),
+            TextField(
+              controller: _confirmController,
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              maxLength: 6,
+              textAlign: TextAlign.center,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(labelText: s.t('confirmPin')),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            ],
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(onPressed: _submit, child: Text(s.t('save'))),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
