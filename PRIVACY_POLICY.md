@@ -1,6 +1,6 @@
 # سياسة الخصوصية — سكانر المستندات (CamScannerAll)
 
-**آخر تحديث:** [أدخل التاريخ هنا قبل النشر]
+**آخر تحديث:** 2026-09-12
 
 هذا التطبيق مصمم من الأساس بدون أي خادم (Backend) خاص بنا، وبدون حساب
 مستخدم، وبدون رفع أي من بياناتك لأي مكان. هذه الصفحة تشرح بالتفصيل ماذا
@@ -8,7 +8,7 @@
 
 ## 1. البيانات التي لا نجمعها إطلاقاً
 
-نحن (المطوّر) **لا نملك أي خادم**، وبالتالي لا نستطيع ولا نقوم بجمع أو
+المطوّر **لا يملك أي خادم**، وبالتالي لا نستطيع ولا نقوم بجمع أو
 استقبال أو تخزين أي من التالي:
 
 - صور أو ملفات المستندات التي تمسحها
@@ -81,13 +81,13 @@
 ## 9. التواصل معنا
 
 لأي استفسار حول هذه السياسة، يمكن التواصل عبر:
-**[أدخل بريدك الإلكتروني هنا قبل النشر]**
+**ahmed.alabdan2@gmail.com**
 
 ---
 
 # Privacy Policy — Document Scanner (CamScannerAll) [English]
 
-**Last updated:** [add date before publishing]
+**Last updated:** 2026-09-12
 
 This app is built from the ground up with no backend server of our own, no
 user account, and no upload of your data anywhere. This page explains
@@ -170,4 +170,4 @@ collect their data (or anyone's data, as explained above).
 ## 9. Contact us
 
 For any question about this policy, contact:
-**[add your email here before publishing]**
+**ahmed.alabdan2@gmail.com**
