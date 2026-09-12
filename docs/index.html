@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سياسة الخصوصية — سكانر المستندات</title>
+<style>
+  :root{
+    --bg:#FAFAF7; --ink:#1B2A4A; --text:#22221E; --text2:#5C5B54;
+    --divider:#E4E0D8; --brass:#C08B3D;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"Cairo","Manrope",system-ui,-apple-system,Segoe UI,Arial,sans-serif;
+    line-height:1.8;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:40px 20px 80px}
+  header{margin-bottom:32px}
+  h1{color:var(--ink); font-size:1.6rem; margin:0 0 8px}
+  .updated{color:var(--text2); font-size:.9rem}
+  .badge{
+    display:inline-block; margin-top:12px; padding:4px 12px;
+    border:1px solid var(--brass); color:var(--brass); border-radius:999px;
+    font-size:.85rem;
+  }
+  h2{color:var(--ink); font-size:1.15rem; margin:32px 0 10px; border-bottom:1px solid var(--divider); padding-bottom:8px}
+  p{margin:0 0 14px}
+  ul{margin:0 0 14px; padding-inline-start:22px}
+  li{margin-bottom:6px}
+  table{width:100%; border-collapse:collapse; margin:0 0 16px; font-size:.95rem}
+  th,td{text-align:start; padding:10px 12px; border-bottom:1px solid var(--divider); vertical-align:top}
+  th{color:var(--text2); font-weight:600}
+  strong{color:var(--ink)}
+  .note{
+    background:#fff; border:1px solid var(--divider); border-inline-start:3px solid var(--brass);
+    padding:14px 16px; border-radius:8px; margin:0 0 16px;
+  }
+  .lang-divider{
+    margin:56px 0; border:none; border-top:2px solid var(--divider);
+  }
+  .en{direction:ltr; text-align:left}
+  .contact{color:var(--ink); font-weight:600}
+  footer{margin-top:48px; color:var(--text2); font-size:.85rem; text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>سياسة الخصوصية — سكانر المستندات (CamScannerAll)</h1>
+    <div class="updated">آخر تحديث: <!-- TODO: أدخل التاريخ هنا --> [أدخل التاريخ]</div>
+    <span class="badge">بدون سيرفر · بدون حساب · كل البيانات على جهازك</span>
+  </header>
+
+  <p>هذا التطبيق مصمم من الأساس بدون أي خادم (Backend) خاص بنا، وبدون حساب
+  مستخدم، وبدون رفع أي من بياناتك لأي مكان. هذه الصفحة تشرح بالتفصيل ماذا
+  يحدث لبياناتك بالضبط.</p>
+
+  <h2>1. البيانات التي لا نجمعها إطلاقاً</h2>
+  <p>نحن (المطوّر) <strong>لا نملك أي خادم</strong>، وبالتالي لا نستطيع ولا
+  نقوم بجمع أو استقبال أو تخزين أي من التالي:</p>
+  <ul>
+    <li>صور أو ملفات المستندات التي تمسحها</li>
+    <li>النص المستخرج من مستنداتك (OCR)</li>
+    <li>رمز القفل (PIN) أو بيانات البصمة/الوجه</li>
+    <li>ملفات النسخ الاحتياطي أو كلمة سرها</li>
+    <li>اسمك أو بريدك الإلكتروني أو أي معرّف شخصي آخر</li>
+    <li>موقعك الجغرافي</li>
+  </ul>
+  <p>كل هذه البيانات تبقى <strong>على جهازك فقط</strong>، داخل مساحة التخزين
+  الخاصة بالتطبيق (App Sandbox) التي لا يمكن لأي تطبيق آخر الوصول إليها.</p>
+
+  <h2>2. أين تُخزَّن بياناتك فعلياً</h2>
+  <table>
+    <tr><th>نوع البيانات</th><th>مكان التخزين</th></tr>
+    <tr><td>صور الصفحات الممسوحة</td><td>مجلد خاص بالتطبيق داخل جهازك (scans/)</td></tr>
+    <tr><td>بيانات المجلدات والمستندات والفهرسة</td><td>قاعدة بيانات محلية (Hive) على جهازك</td></tr>
+    <tr><td>رمز القفل (PIN)</td><td>مُشفَّر (hash) ومخزَّن محلياً؛ لا يُخزَّن كنص صريح</td></tr>
+    <tr><td>بصمة الإصبع / الوجه</td><td>تُدار بالكامل عبر نظام التشغيل، ولا يصل التطبيق لبيانات البصمة نفسها — فقط نتيجة "نجح/فشل"</td></tr>
+    <tr><td>ملفات النسخ الاحتياطي</td><td>تُنشأ محلياً، مشفّرة بكلمة سر تحددها أنت، وتُحفظ حيث تختار أنت — التطبيق لا يرفعها لأي مكان بنفسه</td></tr>
+  </table>
+
+  <h2>3. استخراج النص (OCR)</h2>
+  <p>يستخدم التطبيق مكتبة <strong>Google ML Kit</strong> للتعرف على النص، وتعمل
+  بالكامل <strong>على جهازك (on-device)</strong>. الصور لا تُرسَل لأي خادم
+  لمعالجتها.</p>
+
+  <h2>4. الشراء داخل التطبيق (استثناء الشبكة الوحيد)</h2>
+  <p>المكان الوحيد الذي يتصل فيه التطبيق بالإنترنت هو عملية الشراء نفسها، عبر
+  <strong>Google Play Billing</strong> مباشرة:</p>
+  <ul>
+    <li>عند الشراء، جوجل (وليس نحن) يتولى معالجة الدفع والتحقق منه</li>
+    <li>نحن لا نرى ولا نخزّن بيانات بطاقتك أو دفعتك إطلاقاً</li>
+    <li>تخضع هذه العملية لسياسة خصوصية جوجل بلاي الخاصة بها</li>
+  </ul>
+
+  <h2>5. الأذونات التي يطلبها التطبيق ولماذا</h2>
+  <table>
+    <tr><th>الإذن</th><th>لماذا نحتاجه</th></tr>
+    <tr><td>الكاميرا</td><td>لمسح المستندات فقط — لا تصوير أو تسجيل لأي غرض آخر</td></tr>
+    <tr><td>الإشعارات</td><td>تذكير دوري محلي بعمل نسخة احتياطية (لا يحتوي أي بيانات شخصية)</td></tr>
+    <tr><td>البصمة/التعرف على الوجه (اختياري)</td><td>فتح قفل التطبيق فقط، إن فعّلته أنت بنفسه من الإعدادات</td></tr>
+    <tr><td>الوصول لملف عند الاسترجاع</td><td>لقراءة ملف النسخة الاحتياطية الذي تختاره أنت يدوياً</td></tr>
+  </table>
+
+  <h2>6. المشاركة مع أطراف ثالثة</h2>
+  <p><strong>لا نشارك أي بيانات مع أي طرف ثالث</strong>، لأننا أصلاً لا نملك
+  أي بيانات نشاركها. الاستثناء الوحيد هو ما تفعله أنت بنفسك: مشاركة مستند
+  عبر واتساب أو البريد من داخل التطبيق تتم عبر نافذة المشاركة القياسية
+  لنظام التشغيل، وليس التطبيق من يرسلها.</p>
+
+  <h2>7. حذف بياناتك</h2>
+  <ul>
+    <li>حذف مستند أو مجلد من داخل التطبيق يحذفه نهائياً من جهازك</li>
+    <li>حذف التطبيق نفسه يحذف كل بياناته معه بالكامل</li>
+    <li>لا توجد نسخة "على السيرفر" تبقى بعد الحذف، لأنه لا يوجد سيرفر أصلاً</li>
+  </ul>
+  <div class="note">
+    <strong>تنبيه:</strong> فقدان جهازك أو حذف التطبيق بدون عمل نسخة احتياطية
+    يدوية مسبقاً يعني <strong>فقدان دائم لبياناتك</strong> — هذا مقصود لحماية
+    خصوصيتك الكاملة، ولا يمكننا استرجاعها لك لأننا لا نملك نسخة منها أصلاً.
+  </div>
+
+  <h2>8. خصوصية الأطفال</h2>
+  <p>هذا التطبيق غير موجّه للأطفال دون سن 13 عاماً، ولا يجمع بياناتهم عمداً
+  (ولا بيانات أي أحد أصلاً، كما هو موضح أعلاه).</p>
+
+  <h2>9. التواصل معنا</h2>
+  <p>لأي استفسار حول هذه السياسة:
+    <span class="contact"><!-- TODO: أدخل بريدك --> [أدخل بريدك الإلكتروني]</span>
+  </p>
+
+  <hr class="lang-divider">
+
+  <div class="en">
+    <header>
+      <h1>Privacy Policy — Document Scanner (CamScannerAll)</h1>
+      <div class="updated">Last updated: <!-- TODO: add date --> [add date]</div>
+      <span class="badge">No server · No account · Everything stays on your device</span>
+    </header>
+
+    <p>This app is built from the ground up with no backend server of our
+    own, no user account, and no upload of your data anywhere. This page
+    explains exactly what happens to your data.</p>
+
+    <h2>1. Data we never collect</h2>
+    <p>We (the developer) do not operate any server, so we cannot and do not
+    collect, receive, or store any of the following:</p>
+    <ul>
+      <li>Your scanned document images or files</li>
+      <li>OCR-extracted text from your documents</li>
+      <li>Your lock PIN or biometric data</li>
+      <li>Your backup files or their password</li>
+      <li>Your name, email, or any other personal identifier</li>
+      <li>Your geographic location</li>
+    </ul>
+    <p>All of this stays <strong>on your device only</strong>, inside the
+    app's private sandbox storage, which no other app can access.</p>
+
+    <h2>2. Where your data actually lives</h2>
+    <table>
+      <tr><th>Data</th><th>Where it's stored</th></tr>
+      <tr><td>Scanned page images</td><td>A private folder inside the app on your device (scans/)</td></tr>
+      <tr><td>Folder/document metadata &amp; index</td><td>A local database (Hive) on your device</td></tr>
+      <tr><td>Lock PIN</td><td>Stored locally as a salted hash, never as plain text</td></tr>
+      <tr><td>Fingerprint / Face data</td><td>Handled entirely by your OS; the app never receives the biometric data itself, only a pass/fail result</td></tr>
+      <tr><td>Backup files</td><td>Generated locally, encrypted with a password you choose, saved wherever you pick — the app never uploads them itself</td></tr>
+    </table>
+
+    <h2>3. Text recognition (OCR)</h2>
+    <p>The app uses <strong>Google ML Kit</strong> for text recognition,
+    running entirely <strong>on-device</strong>. Images are never sent to
+    any server for processing.</p>
+
+    <h2>4. In-app purchase (the one network exception)</h2>
+    <p>The only place this app talks to the internet is the purchase flow
+    itself, via <strong>Google Play Billing</strong> directly:</p>
+    <ul>
+      <li>Google (not us) handles and verifies the payment</li>
+      <li>We never see or store your card or payment details</li>
+      <li>This flow is covered by Google Play's own privacy policy</li>
+    </ul>
+
+    <h2>5. Permissions requested and why</h2>
+    <table>
+      <tr><th>Permission</th><th>Why we need it</th></tr>
+      <tr><td>Camera</td><td>Only to scan documents — never for any other recording</td></tr>
+      <tr><td>Notifications</td><td>A local, periodic reminder to back up your data (no personal information)</td></tr>
+      <tr><td>Biometrics (optional)</td><td>Only to unlock the app, if you enable it in Settings</td></tr>
+      <tr><td>File access on restore</td><td>To read the backup file you manually choose</td></tr>
+    </table>
+
+    <h2>6. Third-party sharing</h2>
+    <p><strong>We share no data with any third party</strong>, because we
+    don't hold any data to share in the first place. The one exception is
+    your own action: sharing a document via WhatsApp or email from within
+    the app uses the OS's standard share sheet, not something the app
+    sends on its own.</p>
+
+    <h2>7. Deleting your data</h2>
+    <ul>
+      <li>Deleting a document or folder deletes it permanently from your device</li>
+      <li>Uninstalling the app deletes all its data with it</li>
+      <li>There is no "server copy" left behind, because there is no server</li>
+    </ul>
+    <div class="note">
+      <strong>Note:</strong> losing your device or deleting the app without
+      a manual backup first means <strong>permanent data loss</strong> —
+      intentional, to protect your complete privacy; we cannot recover it
+      since we never held a copy.
+    </div>
+
+    <h2>8. Children's privacy</h2>
+    <p>This app is not directed at children under 13 and does not
+    knowingly collect their data (or anyone's data, as explained above).</p>
+
+    <h2>9. Contact us</h2>
+    <p>For any question about this policy, contact:
+      <span class="contact"><!-- TODO: add email --> [add your email]</span>
+    </p>
+  </div>
+
+  <footer>CamScannerAll</footer>
+</div>
+</body>
+</html>
