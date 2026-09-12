@@ -5,6 +5,8 @@ import '../app_state.dart';
 import '../models/document.dart';
 import '../models/folder.dart';
 import '../services/quick_scan_flow.dart';
+import '../theme/app_colors.dart';
+import '../widgets/empty_state_view.dart';
 import '../widgets/folder_card.dart';
 import 'document_detail_screen.dart';
 import 'folder_screen.dart';
@@ -167,14 +169,15 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm,
+            ),
             child: TextField(
               controller: _searchController,
               onChanged: (v) => setState(() => _query = v),
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search),
                 hintText: s.t('search'),
-                filled: true,
               ),
             ),
           ),
@@ -182,7 +185,11 @@ class _HomeScreenState extends State<HomeScreen> {
             child: searching
                 ? _buildSearchResults(searchResults, appState)
                 : folders.isEmpty
-                    ? Center(child: Text(s.t('noFolders')))
+                    ? EmptyStateView(
+                        message: s.t('noFolders'),
+                        actionLabel: s.t('newFolder'),
+                        onAction: _createFolderDialog,
+                      )
                     : _buildFolderList(folders, isGrid, appState),
           ),
         ],
@@ -198,15 +205,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSearchResults(List<Document> results, AppState appState) {
+    final colors = AppColors.of(context);
     if (results.isEmpty) {
-      return Center(child: Text(appState.strings.t('noDocuments')));
+      return EmptyStateView(message: appState.strings.t('noSearchResults'));
     }
-    return ListView.builder(
+    return ListView.separated(
       itemCount: results.length,
+      separatorBuilder: (_, _) => Divider(color: colors.divider, height: 1, indent: AppSpacing.md, endIndent: AppSpacing.md),
       itemBuilder: (context, index) {
         final doc = results[index];
         return ListTile(
-          leading: const Icon(Icons.description_outlined),
+          leading: Icon(Icons.description_outlined, color: colors.primaryInk),
           title: Text(doc.name),
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: doc)),
@@ -217,13 +226,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFolderList(List<Folder> folders, bool isGrid, AppState appState) {
+    final colors = AppColors.of(context);
     if (isGrid) {
       return GridView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
+          mainAxisSpacing: AppSpacing.md,
+          crossAxisSpacing: AppSpacing.md,
           childAspectRatio: 1.1,
         ),
         itemCount: folders.length,
@@ -245,9 +255,9 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       itemCount: folders.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      separatorBuilder: (_, _) => Divider(color: colors.divider, height: 1, indent: AppSpacing.md, endIndent: AppSpacing.md),
       itemBuilder: (context, index) {
         final folder = folders[index];
         return FolderCard(

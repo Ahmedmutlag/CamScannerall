@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../app_state.dart';
 import '../services/purchase_service.dart';
+import '../theme/app_colors.dart';
 
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key, this.canDismiss = true});
@@ -21,6 +22,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final appState = context.watch<AppState>();
     final s = appState.strings;
     final product = appState.purchase.product;
+    final colors = AppColors.of(context);
 
     return PopScope(
       canPop: widget.canDismiss,
@@ -28,26 +30,30 @@ class _PaywallScreenState extends State<PaywallScreen> {
         appBar: widget.canDismiss ? AppBar(title: Text(s.t('buyNow'))) : null,
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.workspace_premium_outlined, size: 84),
-                const SizedBox(height: 16),
+                Icon(Icons.workspace_premium_outlined, size: 84, color: colors.primaryInk),
+                const SizedBox(height: AppSpacing.md),
                 Text(
                   s.t('trialTitle'),
                   style: Theme.of(context).textTheme.headlineSmall,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
-                Text(s.t('trialBody'), textAlign: TextAlign.center),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  s.t('trialBody'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: colors.textSecondary),
+                ),
+                const SizedBox(height: AppSpacing.lg),
                 if (product != null)
                   Text(
                     product.price,
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.lg),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
@@ -58,7 +64,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         : Text(s.t('buyNow')),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 TextButton(
                   onPressed: _busy ? null : _restore,
                   child: Text(s.t('restorePurchases')),

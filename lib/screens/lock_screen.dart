@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../app_state.dart';
+import '../theme/app_colors.dart';
 import 'splash_screen.dart';
 
 class LockScreen extends StatefulWidget {
@@ -66,18 +67,19 @@ class _LockScreenState extends State<LockScreen> {
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
     final s = appState.strings;
+    final colors = AppColors.of(context);
 
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.lock, size: 72),
-              const SizedBox(height: 16),
+              Icon(Icons.lock_outline, size: 72, color: colors.accentBrass),
+              const SizedBox(height: AppSpacing.md),
               Text(s.t('appName'), style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xl),
               TextField(
                 controller: _pinController,
                 keyboardType: TextInputType.number,
@@ -90,10 +92,10 @@ class _LockScreenState extends State<LockScreen> {
                 onSubmitted: (_) => _verify(),
               ),
               if (_error != null) ...[
-                const SizedBox(height: 8),
-                Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                const SizedBox(height: AppSpacing.sm),
+                Text(_error!, style: TextStyle(color: colors.error)),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -102,7 +104,7 @@ class _LockScreenState extends State<LockScreen> {
                 ),
               ),
               if (appState.lock.biometricEnabled) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.sm),
                 TextButton.icon(
                   onPressed: _tryBiometric,
                   icon: const Icon(Icons.fingerprint),

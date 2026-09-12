@@ -6,7 +6,9 @@ import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../models/document.dart';
 import '../models/folder.dart';
+import '../theme/app_colors.dart';
 import '../widgets/document_card.dart';
+import '../widgets/empty_state_view.dart';
 import 'camera_screen.dart';
 import 'document_detail_screen.dart';
 
@@ -167,23 +169,32 @@ class _FolderScreenState extends State<FolderScreen> {
               ],
       ),
       body: documents.isEmpty
-          ? Center(child: Text(s.t('noDocuments')))
+          ? EmptyStateView(
+              message: s.t('noDocuments'),
+              actionLabel: s.t('addDocument'),
+              onAction: _addDocument,
+            )
           : isGrid
               ? GridView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
+                    mainAxisSpacing: AppSpacing.md,
+                    crossAxisSpacing: AppSpacing.md,
                     childAspectRatio: 0.78,
                   ),
                   itemCount: documents.length,
                   itemBuilder: (context, index) => _buildCard(documents[index], isGrid, appState),
                 )
               : ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                   itemCount: documents.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => Divider(
+                    color: AppColors.of(context).divider,
+                    height: 1,
+                    indent: AppSpacing.md,
+                    endIndent: AppSpacing.md,
+                  ),
                   itemBuilder: (context, index) => _buildCard(documents[index], isGrid, appState),
                 ),
       floatingActionButton: _selectionMode

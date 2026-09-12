@@ -8,6 +8,7 @@ import '../app_state.dart';
 import '../models/doc_page.dart';
 import '../models/document.dart';
 import '../models/folder.dart';
+import '../theme/app_colors.dart';
 import 'camera_screen.dart';
 import 'ocr_screen.dart';
 import 'signature_screen.dart';
@@ -152,7 +153,11 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
           ListTile(leading: const Icon(Icons.image_outlined), title: Text(s.t('pdfToImages')), onTap: () => Navigator.pop(context, 'images')),
           ListTile(leading: const Icon(Icons.call_split), title: Text(s.t('splitPdf')), onTap: () => Navigator.pop(context, 'split')),
           ListTile(leading: const Icon(Icons.compress), title: Text(s.t('compressPdf')), onTap: () => Navigator.pop(context, 'compress')),
-          ListTile(leading: const Icon(Icons.lock_outline), title: Text(s.t('protectPassword')), onTap: () => Navigator.pop(context, 'protect')),
+          ListTile(
+            leading: Icon(Icons.lock_outline, color: AppColors.of(context).accentBrass),
+            title: Text(s.t('protectPassword')),
+            onTap: () => Navigator.pop(context, 'protect'),
+          ),
         ]),
       ),
     );
@@ -264,6 +269,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
     final s = appState.strings;
+    final colors = AppColors.of(context);
     final pages = List<DocPage>.from(doc.pages)..sort((a, b) => a.order.compareTo(b.order));
 
     return Scaffold(
@@ -274,7 +280,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         children: [
           SizedBox(
             height: 160,
@@ -286,11 +292,15 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                 final page = pages[index];
                 return Padding(
                   key: ValueKey(page.id),
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
                   child: Stack(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: colors.divider),
+                        ),
+                        clipBehavior: Clip.antiAlias,
                         child: Image.file(File(page.imagePathLowRes), width: 110, height: 150, fit: BoxFit.cover),
                       ),
                       Positioned(
@@ -314,11 +324,11 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
               },
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(onPressed: _addPages, icon: const Icon(Icons.add), label: Text(s.t('addAnotherPage'))),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           Wrap(
-            spacing: 8,
+            spacing: AppSpacing.sm,
             children: _colorOptions
                 .map((c) => GestureDetector(
                       onTap: () => _setColor(c),
@@ -330,22 +340,22 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                     ))
                 .toList(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _validUntilController,
             decoration: InputDecoration(labelText: s.t('validUntilNote')),
             onEditingComplete: _saveNotes,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           TextField(
             controller: _locationController,
             decoration: InputDecoration(labelText: s.t('locationNote')),
             onEditingComplete: _saveNotes,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
             children: [
               _actionChip(Icons.share_outlined, s.t('share'), _shareFlow),
               _actionChip(Icons.print_outlined, s.t('print'), _print),
@@ -364,6 +374,12 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
   }
 
   Widget _actionChip(IconData icon, String label, VoidCallback onTap) {
-    return ActionChip(avatar: Icon(icon, size: 18), label: Text(label), onPressed: onTap);
+    return Builder(
+      builder: (context) => ActionChip(
+        avatar: Icon(icon, size: 18, color: AppColors.of(context).primaryInk),
+        label: Text(label),
+        onPressed: onTap,
+      ),
+    );
   }
 }

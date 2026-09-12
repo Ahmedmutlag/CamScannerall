@@ -9,7 +9,7 @@ class AppSettings extends HiveObject {
     this.lastBackupDate,
     this.trialStartDate,
     this.isPurchased = false,
-    this.viewMode = 'grid',
+    this.viewMode = 'list',
     this.languageCode = 'ar',
   });
 
@@ -40,7 +40,7 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       lastBackupDate: fields[3] as DateTime?,
       trialStartDate: fields[4] as DateTime?,
       isPurchased: fields[5] as bool? ?? false,
-      viewMode: fields[6] as String? ?? 'grid',
+      viewMode: fields[6] as String? ?? 'list',
       languageCode: fields[7] as String? ?? 'ar',
     );
   }

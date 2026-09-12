@@ -9,6 +9,8 @@ import 'package:uuid/uuid.dart';
 import '../app_state.dart';
 import '../services/image_processing_service.dart';
 import '../services/storage_paths.dart';
+import '../theme/app_colors.dart';
+import '../widgets/empty_state_view.dart';
 
 /// The scan/capture screen. Capture itself is delegated to
 /// `cunning_document_scanner`, which drives Google's ML Kit document
@@ -77,8 +79,8 @@ class _CameraScreenState extends State<CameraScreen> {
       setState(() {
         _state = _ScreenState.error;
         _errorMessage = e.code == 'permission_denied'
-            ? 'يحتاج التطبيق إذن الكاميرا لمسح المستندات.'
-            : 'تعذر تشغيل الماسح الضوئي على هذا الجهاز.';
+            ? 'يحتاج التطبيق إذن الكاميرا لمسح المستندات — فعّله من إعدادات الجهاز ثم أعد المحاولة.'
+            : 'تعذر تشغيل الماسح الضوئي على هذا الجهاز — أعد المحاولة، وإن تكرر الخطأ جرّب إعادة تشغيل الجهاز.';
       });
     }
   }
@@ -162,12 +164,18 @@ class _CameraScreenState extends State<CameraScreen> {
           appBar: AppBar(title: Text(s.t('camera'))),
           body: Center(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(_errorMessage ?? '', textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
+                  Icon(Icons.error_outline, size: 48, color: AppColors.of(context).error),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    _errorMessage ?? '',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.of(context).textSecondary),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
                   FilledButton(onPressed: () => _startScan(), child: Text(s.t('retake'))),
                 ],
               ),
@@ -187,13 +195,13 @@ class _CameraScreenState extends State<CameraScreen> {
             children: [
               Expanded(
                 child: _scannedPaths.isEmpty
-                    ? Center(child: Text(s.t('noDocuments')))
+                    ? EmptyStateView(message: s.t('noDocuments'))
                     : GridView.builder(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(AppSpacing.sm),
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
+                          mainAxisSpacing: AppSpacing.sm,
+                          crossAxisSpacing: AppSpacing.sm,
                           childAspectRatio: 0.72,
                         ),
                         itemCount: _scannedPaths.length,
@@ -222,23 +230,25 @@ class _CameraScreenState extends State<CameraScreen> {
                       ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.md),
                       _filterChip(ScanFilter.auto, s.t('filterAuto')),
                       _filterChip(ScanFilter.blackAndWhite, s.t('filterBW')),
                       _filterChip(ScanFilter.color, s.t('filterColor')),
                       _filterChip(ScanFilter.original, s.t('filterOriginal')),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.md),
                     ],
                   ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md, 0, AppSpacing.md, AppSpacing.md,
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -248,7 +258,7 @@ class _CameraScreenState extends State<CameraScreen> {
                         label: Text(s.t('addAnotherPage')),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: FilledButton(
                         onPressed: _processing ? null : _finish,

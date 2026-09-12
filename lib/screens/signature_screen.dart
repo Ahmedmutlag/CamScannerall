@@ -7,6 +7,7 @@ import 'package:signature/signature.dart' as sig;
 
 import '../app_state.dart';
 import '../models/document.dart';
+import '../theme/app_colors.dart';
 
 enum _Stage { loading, choose, draw, place }
 
@@ -21,7 +22,8 @@ class SignatureScreen extends StatefulWidget {
 
 class _SignatureScreenState extends State<SignatureScreen> {
   _Stage _stage = _Stage.loading;
-  final sig.SignatureController _padController = sig.SignatureController(penStrokeWidth: 4, penColor: Colors.black);
+  final sig.SignatureController _padController =
+      sig.SignatureController(penStrokeWidth: 4, penColor: AppColors.light.textPrimary);
 
   Uint8List? _signatureBytes;
   int _pageIndex = 0;
@@ -97,20 +99,21 @@ class _SignatureScreenState extends State<SignatureScreen> {
   }
 
   Widget _buildChoose(dynamic s) {
+    final colors = AppColors.of(context);
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (_signatureBytes != null)
             Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(border: Border.all(color: colors.divider), borderRadius: AppRadius.radius),
               child: Image.memory(_signatureBytes!, height: 100),
             ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.lg),
           FilledButton(onPressed: () => setState(() => _stage = _Stage.place), child: Text(s.t('useSignature'))),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           OutlinedButton(onPressed: () => setState(() => _stage = _Stage.draw), child: Text(s.t('drawSignature'))),
         ],
       ),
@@ -118,23 +121,24 @@ class _SignatureScreenState extends State<SignatureScreen> {
   }
 
   Widget _buildDraw(dynamic s) {
+    final colors = AppColors.of(context);
     return Column(
       children: [
         Expanded(
           child: Container(
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(12)),
-            child: sig.Signature(controller: _padController, backgroundColor: Colors.white),
+            margin: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(border: Border.all(color: colors.divider), borderRadius: AppRadius.radius),
+            child: sig.Signature(controller: _padController, backgroundColor: colors.backgroundPrimary),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
               Expanded(
                 child: OutlinedButton(onPressed: () => _padController.clear(), child: Text(s.t('clear'))),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: FilledButton(onPressed: _saveDrawnSignature, child: Text(s.t('save'))),
               ),
@@ -146,6 +150,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
   }
 
   Widget _buildPlace(dynamic s) {
+    final colors = AppColors.of(context);
     final page = widget.document.pages[_pageIndex];
     return Column(
       children: [
@@ -156,11 +161,13 @@ class _SignatureScreenState extends State<SignatureScreen> {
               scrollDirection: Axis.horizontal,
               itemCount: widget.document.pages.length,
               itemBuilder: (context, i) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.sm),
                 child: GestureDetector(
                   onTap: () => setState(() => _pageIndex = i),
                   child: Container(
-                    decoration: BoxDecoration(border: Border.all(color: i == _pageIndex ? Colors.blue : Colors.transparent, width: 2)),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: i == _pageIndex ? colors.primaryInk : Colors.transparent, width: 2),
+                    ),
                     child: Image.file(File(widget.document.pages[i].imagePathLowRes), width: 46, fit: BoxFit.cover),
                   ),
                 ),
@@ -189,7 +196,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
                         }),
                         child: Container(
                           width: sigWidth,
-                          decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent)),
+                          decoration: BoxDecoration(border: Border.all(color: colors.primaryInk)),
                           child: Image.memory(_signatureBytes!, fit: BoxFit.contain),
                         ),
                       ),
@@ -201,10 +208,10 @@ class _SignatureScreenState extends State<SignatureScreen> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: Row(
             children: [
-              const Icon(Icons.photo_size_select_small),
+              Icon(Icons.photo_size_select_small, color: colors.textSecondary),
               Expanded(
                 child: Slider(
                   value: _widthFraction,
@@ -222,7 +229,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
           title: Text(s.t('addDateStamp')),
         ),
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: SizedBox(
             width: double.infinity,
             child: FilledButton(

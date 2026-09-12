@@ -93,6 +93,9 @@ dependencies:
   # Archive (backup packaging, docx building)
   archive: ^4.0.9
 
+  # Design system typography (bundled offline, see lib/theme/app_theme.dart)
+  google_fonts: ^6.2.1
+
   # Misc utilities
   intl: ^0.20.2
   uuid: ^4.5.1
@@ -121,10 +124,19 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  # Manrope (Latin headlines/body) and Cairo (Arabic) — bundled as plain
+  # assets, not a `fonts:` block, so that `google_fonts` finds them in the
+  # asset manifest and loads them offline instead of fetching over the
+  # network (see lib/theme/app_theme.dart / GoogleFonts.config).
+  assets:
+    - assets/fonts/Manrope-Regular.ttf
+    - assets/fonts/Manrope-Medium.ttf
+    - assets/fonts/Manrope-SemiBold.ttf
+    - assets/fonts/Manrope-Bold.ttf
+    - assets/fonts/Cairo-Regular.ttf
+    - assets/fonts/Cairo-Medium.ttf
+    - assets/fonts/Cairo-SemiBold.ttf
+    - assets/fonts/Cairo-Bold.ttf
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

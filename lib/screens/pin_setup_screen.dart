@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../app_state.dart';
+import '../theme/app_colors.dart';
 import 'splash_screen.dart';
 
 class PinSetupScreen extends StatefulWidget {
@@ -89,16 +90,17 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
     final s = appState.strings;
+    final colors = AppColors.of(context);
 
     return Scaffold(
       appBar: AppBar(title: Text(s.t('setPin'))),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.lock_outline, size: 64),
-            const SizedBox(height: 24),
+            Icon(Icons.lock_outline, size: 64, color: colors.accentBrass),
+            const SizedBox(height: AppSpacing.lg),
             TextField(
               controller: _pinController,
               keyboardType: TextInputType.number,
@@ -118,10 +120,10 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
               decoration: InputDecoration(labelText: s.t('confirmPin')),
             ),
             if (_error != null) ...[
-              const SizedBox(height: 8),
-              Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              const SizedBox(height: AppSpacing.sm),
+              Text(_error!, style: TextStyle(color: colors.error)),
             ],
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
             SizedBox(
               width: double.infinity,
               child: FilledButton(onPressed: _submit, child: Text(s.t('save'))),

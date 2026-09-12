@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../app_state.dart';
 import '../models/document.dart';
+import '../theme/app_colors.dart';
 
 class OcrScreen extends StatefulWidget {
   const OcrScreen({super.key, required this.document});
@@ -53,7 +54,7 @@ class _OcrScreenState extends State<OcrScreen> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -61,11 +62,11 @@ class _OcrScreenState extends State<OcrScreen> {
               child: SingleChildScrollView(
                 child: SelectableText(
                   widget.document.extractedText.isEmpty ? '—' : widget.document.extractedText,
-                  textDirection: TextDirection.rtl,
+                  style: TextStyle(color: AppColors.of(context).textPrimary),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.sm),
             FilledButton.icon(onPressed: _copy, icon: const Icon(Icons.copy_outlined), label: Text(s.t('copyText'))),
           ],
         ),

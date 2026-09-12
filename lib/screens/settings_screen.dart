@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../app_state.dart';
 import '../services/backup_service.dart';
+import '../theme/app_colors.dart';
 import 'paywall_screen.dart';
 import 'pin_setup_screen.dart';
 
@@ -54,7 +55,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
     await appState.share.shareBytes(bytes, 'backup_${DateTime.now().millisecondsSinceEpoch}.dsbackup');
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('backupCreated'))));
+    final colors = AppColors.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: colors.accentBrass,
+      content: Row(
+        children: [
+          const Icon(Icons.check_circle_outline, color: Colors.white),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(child: Text(s.t('backupCreated'), style: const TextStyle(color: Colors.white))),
+        ],
+      ),
+    ));
     setState(() {});
   }
 
@@ -195,7 +206,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Divider(),
                 _sectionTitle(s.t('purchaseStatus')),
                 ListTile(
-                  leading: Icon(settings.isPurchased ? Icons.verified_outlined : Icons.timer_outlined),
+                  leading: Icon(
+                    settings.isPurchased ? Icons.verified_outlined : Icons.timer_outlined,
+                    color: settings.isPurchased ? AppColors.of(context).accentBrass : null,
+                  ),
                   title: Text(settings.isPurchased ? s.t('purchased') : s.t('trialActive')),
                   subtitle: settings.isPurchased ? null : Text('${s.t('daysLeft')}: ${appState.trial.daysLeft}'),
                   trailing: settings.isPurchased
@@ -211,8 +225,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _sectionTitle(String text) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-        child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
+  Widget _sectionTitle(String text) => Builder(
+        builder: (context) => Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xs,
+          ),
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: AppColors.of(context).textSecondary,
+                ),
+          ),
+        ),
       );
 }
