@@ -153,6 +153,9 @@ class AppStrings {
       'ar': 'تعذّر الكتابة بهذا المجلد. جرّب اختيار مجلد آخر (مثل مجلد التنزيلات).',
       'en': 'Could not write to this folder. Try choosing a different one (e.g. Downloads).',
     },
+    'saveToGallery': {'ar': 'حفظ بالمعرض', 'en': 'Save to gallery'},
+    'savedToGallery': {'ar': 'تم الحفظ بمعرض الصور', 'en': 'Saved to your photo gallery'},
+    'saveToGalleryError': {'ar': 'تعذّر الحفظ بالمعرض', 'en': 'Could not save to gallery'},
   };
 
   String t(String key) => _table[key]?[languageCode] ?? _table[key]?['en'] ?? key;

@@ -89,6 +89,8 @@ dependencies:
   path_provider: ^2.1.5
   permission_handler: ^11.3.1
   file_picker: ^12.3.0
+  # Explicit "Save to gallery" export (see lib/services/gallery_service.dart)
+  gal: ^2.3.3
 
   # Archive (backup packaging, docx building)
   archive: ^4.0.9

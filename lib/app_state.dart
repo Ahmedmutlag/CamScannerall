@@ -11,6 +11,7 @@ import 'services/database_service.dart';
 import 'services/docx_export_service.dart';
 import 'services/duplicate_detection_service.dart';
 import 'services/export_service.dart';
+import 'services/gallery_service.dart';
 import 'services/image_processing_service.dart';
 import 'services/lock_service.dart';
 import 'services/notification_service.dart';
@@ -41,6 +42,7 @@ class AppState extends ChangeNotifier {
   late final NotificationService notifications = NotificationService(db);
   late final DuplicateDetectionService duplicates = DuplicateDetectionService(db);
   final ShareService share = ShareService();
+  final GalleryService gallery = GalleryService();
   final ExportService export = ExportService();
   final PdfProtectionService pdfProtection = PdfProtectionService();
   late final PurchaseService purchase = PurchaseService(db);

@@ -138,6 +138,29 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     await appState.pdf.printBytes(bytes, name: doc.name);
   }
 
+  /// The one deliberate, explicit exception to the app's "everything stays
+  /// in the private sandbox" default (see PRIVACY_POLICY.md): copies this
+  /// document's pages into the phone's normal public photo gallery, for
+  /// when the user wants to use them like ordinary photos (open them from
+  /// Photos, back them up via their usual photo backup, hand them to an
+  /// app that only accepts gallery images). Nothing reaches the gallery
+  /// unless the user taps this themselves.
+  Future<void> _saveToGallery() async {
+    final appState = context.read<AppState>();
+    final s = appState.strings;
+    try {
+      await appState.gallery.saveImages(
+        doc.pages.map((p) => p.imagePathHighRes).toList(),
+        album: s.t('appName'),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('savedToGallery'))));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('saveToGalleryError'))));
+    }
+  }
+
   Future<void> _convertMenu() async {
     final appState = context.read<AppState>();
     final s = appState.strings;
@@ -362,6 +385,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
             runSpacing: AppSpacing.sm,
             children: [
               _actionChip(Icons.share_outlined, s.t('share'), _shareFlow),
+              _actionChip(Icons.save_alt_outlined, s.t('saveToGallery'), _saveToGallery),
               _actionChip(Icons.print_outlined, s.t('print'), _print),
               _actionChip(Icons.draw_outlined, s.t('sign'), () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => SignatureScreen(document: doc)))),

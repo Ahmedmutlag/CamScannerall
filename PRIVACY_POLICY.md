@@ -61,6 +61,12 @@
 أو البريد أو أي تطبيق آخر من داخل التطبيق، فهذا إجراء تتحكم فيه أنت
 بالكامل (نافذة المشاركة القياسية لنظام التشغيل)، وليس التطبيق من يرسله.
 
+كذلك زر "حفظ بالمعرض": هذا إجراء اختياري بالكامل لا يحدث أبداً تلقائياً؛
+فقط عند ضغطك عليه صراحة، تُنسخ صور المستند لمعرض الصور العام بجهازك. بعد
+هذه اللحظة تصبح هذه النسخة صورة عادية يمكن لتطبيقاتك الأخرى (مثل تطبيقات
+النسخ الاحتياطي للصور) الوصول لها، تماماً كأي صورة تلتقطها بكاميرا
+هاتفك — النسخة الأصلية داخل مساحة التطبيق الخاصة تبقى محمية كما هي.
+
 ## 7. حذف بياناتك
 
 بما أن كل بياناتك محلية على جهازك فقط:
@@ -148,6 +154,14 @@ to share in the first place. The one exception is your own action: if you
 choose to share a document via WhatsApp, email, or another app from within
 the app, that's the OS's standard share sheet, fully under your control —
 not something the app sends on its own.
+
+The same applies to the "Save to gallery" button: this is entirely
+optional and never happens automatically; only when you explicitly tap it
+are the document's images copied into your device's public photo gallery.
+From that moment, that copy is an ordinary photo your other apps (like a
+photo backup app) can access, just like any picture taken with your
+camera — the original inside the app's private storage stays protected as
+before.
 
 ## 7. Deleting your data
 
