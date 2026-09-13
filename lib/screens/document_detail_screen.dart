@@ -8,6 +8,7 @@ import '../models/doc_page.dart';
 import '../models/document.dart';
 import '../models/folder.dart';
 import '../theme/app_colors.dart';
+import '../widgets/full_page_preview.dart';
 import 'camera_screen.dart';
 import 'ocr_screen.dart';
 import 'signature_screen.dart';
@@ -70,6 +71,22 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     final appState = context.read<AppState>();
     await appState.deleteDocument(doc);
     if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _openPreview(List<DocPage> pages, int initialIndex) async {
+    final appState = context.read<AppState>();
+    final removedIndex = await Navigator.of(context).push<int>(
+      MaterialPageRoute(
+        builder: (_) => FullPagePreview(
+          paths: pages.map((p) => p.imagePathHighRes).toList(),
+          initialIndex: initialIndex,
+        ),
+        fullscreenDialog: true,
+      ),
+    );
+    if (removedIndex == null || !mounted) return;
+    await appState.deletePage(doc, pages[removedIndex]);
+    setState(() {});
   }
 
   Future<void> _addPages() async {
@@ -279,13 +296,16 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                   padding: const EdgeInsets.only(right: AppSpacing.sm),
                   child: Stack(
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: colors.divider),
+                      GestureDetector(
+                        onTap: () => _openPreview(pages, index),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: colors.divider),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Image.file(File(page.imagePathLowRes), width: 110, height: 150, fit: BoxFit.cover),
                         ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Image.file(File(page.imagePathLowRes), width: 110, height: 150, fit: BoxFit.cover),
                       ),
                       Positioned(
                         top: 2,
