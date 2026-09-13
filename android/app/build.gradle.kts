@@ -12,6 +12,11 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // flutter_local_notifications (and some of its own dependencies) use
+        // Java 8+ APIs that need desugaring to run on older Android API
+        // levels — without this, Gradle refuses the build with
+        // "requires core library desugaring to be enabled".
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
@@ -42,6 +47,10 @@ kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 flutter {
