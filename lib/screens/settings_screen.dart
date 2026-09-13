@@ -73,9 +73,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final appState = context.read<AppState>();
     final s = appState.strings;
 
-    final result = await FilePicker.platform.pickFiles();
-    if (result == null || result.files.single.path == null) return;
-    final path = result.files.single.path!;
+    final file = await FilePicker.pickFile();
+    if (file == null || file.path == null) return;
+    final path = file.path!;
 
     final password = await _askPassword(s.t('restoreBackup'));
     if (password == null || password.isEmpty || !mounted) return;

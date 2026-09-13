@@ -12,10 +12,14 @@ class ShareService {
     final tempDir = await Directory.systemTemp.createTemp('share');
     final file = File('${tempDir.path}/$filename');
     await file.writeAsBytes(bytes);
-    await Share.shareXFiles([XFile(file.path, mimeType: mimeType)], text: text);
+    await SharePlus.instance.share(
+      ShareParams(files: [XFile(file.path, mimeType: mimeType)], text: text),
+    );
   }
 
   Future<void> shareFiles(List<String> paths, {String? text}) async {
-    await Share.shareXFiles(paths.map((p) => XFile(p)).toList(), text: text);
+    await SharePlus.instance.share(
+      ShareParams(files: paths.map((p) => XFile(p)).toList(), text: text),
+    );
   }
 }
