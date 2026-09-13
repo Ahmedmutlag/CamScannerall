@@ -32,13 +32,37 @@ class _FolderScreenState extends State<FolderScreen> {
     if (result == null || result.isEmpty || !mounted) return;
 
     final appState = context.read<AppState>();
+    final s = appState.strings;
+
+    final recent = appState.recentDocumentForFolder(widget.folder.id);
+    if (recent != null) {
+      final addToRecent = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(s.t('groupWithRecentTitle')),
+          content: Text('${s.t('groupWithRecentBody')}\n\n"${recent.name}"'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(s.t('newDocument'))),
+            FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(s.t('addToIt'))),
+          ],
+        ),
+      );
+      if (addToRecent == true && mounted) {
+        await appState.addPagesToDocument(recent, result);
+        if (mounted) {
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: recent)));
+        }
+        return;
+      }
+      if (!mounted) return;
+    }
+
     final (doc, duplicate) = await appState.createDocumentFromPages(
       folderId: widget.folder.id,
       pages: result,
     );
 
     if (duplicate != null && mounted) {
-      final s = appState.strings;
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(

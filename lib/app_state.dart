@@ -48,6 +48,28 @@ class AppState extends ChangeNotifier {
 
   bool isUnlockedThisSession = false;
 
+  /// Folder id -> (document id, when a page was last added to it). Used
+  /// only to offer "add to the document you just scanned" instead of
+  /// always starting a brand new one when the user scans again moments
+  /// later into the same folder. Intentionally in-memory only: once the
+  /// app has been closed for a while, starting fresh is the safer default.
+  final Map<String, ({String docId, DateTime at})> _recentDocumentActivity = {};
+  static const Duration _groupingWindow = Duration(minutes: 3);
+
+  void _markDocumentActivity(String folderId, String docId) {
+    _recentDocumentActivity[folderId] = (docId: docId, at: DateTime.now());
+  }
+
+  /// Returns the just-scanned document in [folderId], if any page was
+  /// added to it within the last few minutes, so the caller can offer to
+  /// group a new scan into it instead of creating a separate document.
+  Document? recentDocumentForFolder(String folderId) {
+    final activity = _recentDocumentActivity[folderId];
+    if (activity == null) return null;
+    if (DateTime.now().difference(activity.at) > _groupingWindow) return null;
+    return db.documentById(activity.docId);
+  }
+
   AppStrings get strings => AppStrings(db.settings.languageCode);
 
   bool get isRtl => db.settings.languageCode == 'ar';
@@ -56,10 +78,15 @@ class AppState extends ChangeNotifier {
     await db.init();
     await trial.ensureTrialStarted();
     await notifications.init();
-    await notifications.maybeShowBackupReminder(
-      strings.t('backup'),
-      strings.t('backupReminderBody'),
-    );
+    final hasAutoBackupFolder = (db.settings.autoBackupFolderPath ?? '').isNotEmpty;
+    if (hasAutoBackupFolder) {
+      await backup.maybeRunAutomaticBackup();
+    } else {
+      await notifications.maybeShowBackupReminder(
+        strings.t('backup'),
+        strings.t('backupReminderBody'),
+      );
+    }
     // Store connectivity is not required for the app to function; init in
     // the background so a slow/offline store never blocks app startup.
     // ignore: discarded_futures
@@ -168,8 +195,36 @@ class AppState extends ChangeNotifier {
     final duplicate = duplicates.findLikelyDuplicate(document);
 
     await db.addDocument(document);
+    _markDocumentActivity(folderId, docId);
     notifyListeners();
     return (document, duplicate);
+  }
+
+  /// Appends freshly captured pages to an existing [doc] (re-running OCR
+  /// across the full, now-longer page set) instead of creating a new
+  /// document — used both by "add another page" on the detail screen and
+  /// by the same-session grouping suggestion in the folder screen.
+  Future<void> addPagesToDocument(
+    Document doc,
+    List<({String highRes, String lowRes})> pages,
+  ) async {
+    var order = doc.pages.length;
+    final newPages = <DocPage>[];
+    for (final p in pages) {
+      newPages.add(DocPage(
+        id: const Uuid().v4(),
+        documentId: doc.id,
+        imagePathHighRes: p.highRes,
+        imagePathLowRes: p.lowRes,
+        order: order,
+      ));
+      order++;
+    }
+    doc.pages = [...doc.pages, ...newPages];
+    doc.extractedText = await ocr.extractTextFromPages(doc.pages.map((p) => p.imagePathHighRes).toList());
+    await doc.save();
+    _markDocumentActivity(doc.folderId, doc.id);
+    notifyListeners();
   }
 
   Future<void> renameDocument(Document doc, String newName) async {

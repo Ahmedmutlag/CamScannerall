@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
 
 import '../app_state.dart';
 import '../models/doc_page.dart';
@@ -79,22 +78,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     );
     if (result == null || result.isEmpty || !mounted) return;
     final appState = context.read<AppState>();
-    var order = doc.pages.length;
-    final newPages = <DocPage>[];
-    for (final p in result) {
-      newPages.add(DocPage(
-        id: const Uuid().v4(),
-        documentId: doc.id,
-        imagePathHighRes: p.highRes,
-        imagePathLowRes: p.lowRes,
-        order: order,
-      ));
-      order++;
-    }
-    doc.pages = [...doc.pages, ...newPages];
-    final text = await appState.ocr.extractTextFromPages(doc.pages.map((p) => p.imagePathHighRes).toList());
-    doc.extractedText = text;
-    await doc.save();
+    await appState.addPagesToDocument(doc, result);
     setState(() {});
   }
 

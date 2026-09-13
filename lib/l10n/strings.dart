@@ -133,6 +133,26 @@ class AppStrings {
     'validUntilNote': {'ar': 'ملاحظة: صالح لغاية', 'en': 'Note: valid until'},
     'locationNote': {'ar': 'ملاحظة الموقع/المصدر', 'en': 'Location/source note'},
     'ok': {'ar': 'موافق', 'en': 'OK'},
+    'groupWithRecentTitle': {'ar': 'إضافة لمستند حديث؟', 'en': 'Add to a recent document?'},
+    'groupWithRecentBody': {
+      'ar': 'مسحت صفحات بهذا المجلد قبل قليل. هل تضيف الصفحات الجديدة لنفس المستند بدل إنشاء مستند جديد؟',
+      'en': 'You scanned pages into this folder moments ago. Add the new pages to that same document instead of creating a new one?',
+    },
+    'addToIt': {'ar': 'أضف لنفس المستند', 'en': 'Add to it'},
+    'newDocument': {'ar': 'مستند جديد', 'en': 'New document'},
+    'autoBackup': {'ar': 'النسخ الاحتياطي التلقائي', 'en': 'Automatic backup'},
+    'autoBackupFolder': {'ar': 'مجلد النسخ التلقائي', 'en': 'Auto-backup folder'},
+    'autoBackupNotSet': {'ar': 'غير مُفعَّل', 'en': 'Not set up'},
+    'chooseFolder': {'ar': 'اختيار مجلد', 'en': 'Choose folder'},
+    'clearFolder': {'ar': 'إلغاء', 'en': 'Clear'},
+    'autoBackupExplain': {
+      'ar': 'عند تحديد مجلد، ينشئ التطبيق نسخة احتياطية بصمت كل 60 يوماً بداخله تلقائياً، مشفّرة بمفتاح داخلي خاص بجهازك (بدون كلمة سر). ملاحظة مهمة: هذه النسخة تُستخدم فقط لاسترجاع بياناتك على نفس الجهاز — إن فقدت الجهاز فهي لا تُفتح من جهاز آخر. للنسخة القابلة للنقل بين الأجهزة استخدم "إنشاء نسخة احتياطية" بالأعلى.',
+      'en': 'Once a folder is set, the app silently creates a backup inside it every 60 days, encrypted with a device-only internal key (no password). Important: this backup can only restore data on this same device — it cannot be opened on another device if you lose this one. For a portable backup, use "Create backup" above.',
+    },
+    'autoBackupWriteError': {
+      'ar': 'تعذّر الكتابة بهذا المجلد. جرّب اختيار مجلد آخر (مثل مجلد التنزيلات).',
+      'en': 'Could not write to this folder. Try choosing a different one (e.g. Downloads).',
+    },
   };
 
   String t(String key) => _table[key]?[languageCode] ?? _table[key]?['en'] ?? key;

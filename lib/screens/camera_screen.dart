@@ -124,6 +124,16 @@ class _CameraScreenState extends State<CameraScreen> {
     setState(() => _scannedPaths.removeAt(index));
   }
 
+  Future<void> _openFullPreview(int initialIndex) async {
+    final removedIndex = await Navigator.of(context).push<int>(
+      MaterialPageRoute(
+        builder: (_) => _FullPagePreview(paths: _scannedPaths, initialIndex: initialIndex),
+        fullscreenDialog: true,
+      ),
+    );
+    if (removedIndex != null) _removePage(removedIndex);
+  }
+
   Future<void> _finish() async {
     if (_scannedPaths.isEmpty) {
       Navigator.of(context).pop(<({String highRes, String lowRes})>[]);
@@ -208,9 +218,12 @@ class _CameraScreenState extends State<CameraScreen> {
                         itemBuilder: (context, index) => Stack(
                           children: [
                             Positioned.fill(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.file(File(_scannedPaths[index]), fit: BoxFit.cover),
+                              child: GestureDetector(
+                                onTap: () => _openFullPreview(index),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(File(_scannedPaths[index]), fit: BoxFit.cover),
+                                ),
                               ),
                             ),
                             Positioned(
@@ -284,6 +297,58 @@ class _CameraScreenState extends State<CameraScreen> {
         label: Text(label),
         selected: selected,
         onSelected: (_) => setState(() => _filter = filter),
+      ),
+    );
+  }
+}
+
+/// Full-screen, pinch-to-zoom review of a captured page before the final
+/// save, with swipe between pages and a delete action — addresses the gap
+/// where the review grid only showed small fixed thumbnails.
+class _FullPagePreview extends StatefulWidget {
+  const _FullPagePreview({required this.paths, required this.initialIndex});
+
+  final List<String> paths;
+  final int initialIndex;
+
+  @override
+  State<_FullPagePreview> createState() => _FullPagePreviewState();
+}
+
+class _FullPagePreviewState extends State<_FullPagePreview> {
+  late final PageController _controller = PageController(initialPage: widget.initialIndex);
+  late int _currentIndex = widget.initialIndex;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text('${_currentIndex + 1} / ${widget.paths.length}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () => Navigator.of(context).pop(_currentIndex),
+          ),
+        ],
+      ),
+      body: PageView.builder(
+        controller: _controller,
+        itemCount: widget.paths.length,
+        onPageChanged: (i) => setState(() => _currentIndex = i),
+        itemBuilder: (context, index) => InteractiveViewer(
+          minScale: 1,
+          maxScale: 5,
+          child: Center(child: Image.file(File(widget.paths[index]))),
+        ),
       ),
     );
   }

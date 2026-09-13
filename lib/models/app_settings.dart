@@ -11,6 +11,7 @@ class AppSettings extends HiveObject {
     this.isPurchased = false,
     this.viewMode = 'list',
     this.languageCode = 'ar',
+    this.autoBackupFolderPath,
   });
 
   String? pinHash;
@@ -21,6 +22,7 @@ class AppSettings extends HiveObject {
   bool isPurchased;
   String viewMode; // 'grid' or 'list'
   String languageCode; // 'ar' or 'en'
+  String? autoBackupFolderPath;
 }
 
 class AppSettingsAdapter extends TypeAdapter<AppSettings> {
@@ -42,13 +44,14 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       isPurchased: fields[5] as bool? ?? false,
       viewMode: fields[6] as String? ?? 'list',
       languageCode: fields[7] as String? ?? 'ar',
+      autoBackupFolderPath: fields[8] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.pinHash)
       ..writeByte(1)
@@ -64,6 +67,8 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(6)
       ..write(obj.viewMode)
       ..writeByte(7)
-      ..write(obj.languageCode);
+      ..write(obj.languageCode)
+      ..writeByte(8)
+      ..write(obj.autoBackupFolderPath);
   }
 }

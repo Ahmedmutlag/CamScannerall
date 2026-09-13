@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/doc_page.dart';
@@ -17,10 +18,76 @@ import 'storage_paths.dart';
 /// no email, no IP-based identification: the only key to the data is the
 /// password the user chooses at export time, and the only artifact is a
 /// single encrypted file the user stores wherever they like.
+///
+/// A second, silent path exists for the periodic automatic backup (see
+/// [maybeRunAutomaticBackup]): since nothing can prompt for a password
+/// every 60 days unattended, those backups are encrypted with a random key
+/// generated once and held in secure storage. That key never leaves the
+/// device, so an automatic backup file is only ever restorable on the same
+/// device/install — it is not a substitute for the portable, user-password
+/// backup above if the device itself is lost.
 class BackupService {
   BackupService(this._db);
 
   final DatabaseService _db;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
+  static const _autoBackupKeyStorageKey = 'auto_backup_key';
+  static const autoBackupFileName = 'camscanner_auto_backup.dsbackup';
+  static const Duration autoBackupInterval = Duration(days: 60);
+
+  Future<String?> _readAutoBackupKey() => _secureStorage.read(key: _autoBackupKeyStorageKey);
+
+  Future<String> _getOrCreateAutoBackupKey() async {
+    var key = await _readAutoBackupKey();
+    if (key == null) {
+      key = base64UrlEncode(CryptoHelper.randomBytes(32));
+      await _secureStorage.write(key: _autoBackupKeyStorageKey, value: key);
+    }
+    return key;
+  }
+
+  Future<void> setAutoBackupFolder(String? path) async {
+    final settings = _db.settings;
+    settings.autoBackupFolderPath = path;
+    await _db.saveSettings(settings);
+  }
+
+  bool get autoBackupDue {
+    final last = _db.settings.lastBackupDate;
+    return last == null || DateTime.now().difference(last) >= autoBackupInterval;
+  }
+
+  /// Silently writes an internally-encrypted backup into the configured
+  /// folder if one is set and a backup is due. Returns true if a backup
+  /// was actually written.
+  Future<bool> maybeRunAutomaticBackup() async {
+    final folderPath = _db.settings.autoBackupFolderPath;
+    if (folderPath == null || folderPath.isEmpty || !autoBackupDue) return false;
+
+    final key = await _getOrCreateAutoBackupKey();
+    final bytes = await createBackup(key);
+    final file = File('$folderPath/$autoBackupFileName');
+    await file.writeAsBytes(bytes, flush: true);
+    await markBackupDone();
+    return true;
+  }
+
+  /// Restores from the automatic backup file in the configured folder,
+  /// using the device-held internal key. Fails (returns
+  /// [BackupRestoreResult.wrongPasswordOrCorrupted]) if no internal key or
+  /// no backup file exists yet, or if the key doesn't match the file (e.g.
+  /// after reinstalling the app, which clears secure storage).
+  Future<BackupRestoreResult> restoreFromAutoBackupFolder() async {
+    final folderPath = _db.settings.autoBackupFolderPath;
+    final key = await _readAutoBackupKey();
+    if (folderPath == null || folderPath.isEmpty || key == null) {
+      return BackupRestoreResult.wrongPasswordOrCorrupted;
+    }
+    final file = File('$folderPath/$autoBackupFileName');
+    if (!await file.exists()) return BackupRestoreResult.wrongPasswordOrCorrupted;
+    return restoreBackup(await file.readAsBytes(), key);
+  }
 
   /// Builds the encrypted backup file bytes for the given [password].
   Future<Uint8List> createBackup(String password) async {

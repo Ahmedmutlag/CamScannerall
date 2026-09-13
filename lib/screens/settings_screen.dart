@@ -104,6 +104,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {});
   }
 
+  Future<void> _chooseAutoBackupFolder() async {
+    final appState = context.read<AppState>();
+    final s = appState.strings;
+    final path = await FilePicker.getDirectoryPath();
+    if (path == null || !mounted) return;
+
+    // Confirm the folder is actually writable before saving it — on some
+    // Android versions a picked directory outside the app's own storage
+    // can silently reject writes; surfacing that now beats a mysterious
+    // failure during a background auto-backup run 60 days later.
+    try {
+      final probe = File('$path/.camscanner_write_test');
+      await probe.writeAsBytes(const [0]);
+      await probe.delete();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('autoBackupWriteError'))));
+      return;
+    }
+
+    await appState.backup.setAutoBackupFolder(path);
+    if (mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
@@ -173,6 +197,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     settings.lastBackupDate != null
                         ? DateFormat('yyyy-MM-dd').format(settings.lastBackupDate!)
                         : s.t('never'),
+                  ),
+                ),
+                const Divider(),
+                _sectionTitle(s.t('autoBackup')),
+                ListTile(
+                  leading: const Icon(Icons.folder_outlined),
+                  title: Text(s.t('autoBackupFolder')),
+                  subtitle: Text(settings.autoBackupFolderPath ?? s.t('autoBackupNotSet')),
+                  trailing: settings.autoBackupFolderPath == null
+                      ? TextButton(onPressed: _chooseAutoBackupFolder, child: Text(s.t('chooseFolder')))
+                      : IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () async {
+                            await appState.backup.setAutoBackupFolder(null);
+                            setState(() {});
+                          },
+                        ),
+                  onTap: settings.autoBackupFolderPath == null ? _chooseAutoBackupFolder : null,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.md),
+                  child: Text(
+                    s.t('autoBackupExplain'),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.of(context).textSecondary,
+                        ),
                   ),
                 ),
                 const Divider(),
