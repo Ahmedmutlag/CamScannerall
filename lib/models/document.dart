@@ -11,8 +11,6 @@ class Document extends HiveObject {
     this.extractedText = '',
     required this.createdAt,
     this.colorTag,
-    this.manualValidUntilNote,
-    this.locationNote,
   });
 
   String id;
@@ -22,8 +20,6 @@ class Document extends HiveObject {
   String extractedText;
   DateTime createdAt;
   int? colorTag;
-  String? manualValidUntilNote;
-  String? locationNote;
 }
 
 class DocumentAdapter extends TypeAdapter<Document> {
@@ -44,15 +40,13 @@ class DocumentAdapter extends TypeAdapter<Document> {
       extractedText: fields[4] as String? ?? '',
       createdAt: fields[5] as DateTime,
       colorTag: fields[6] as int?,
-      manualValidUntilNote: fields[7] as String?,
-      locationNote: fields[8] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Document obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -66,10 +60,6 @@ class DocumentAdapter extends TypeAdapter<Document> {
       ..writeByte(5)
       ..write(obj.createdAt)
       ..writeByte(6)
-      ..write(obj.colorTag)
-      ..writeByte(7)
-      ..write(obj.manualValidUntilNote)
-      ..writeByte(8)
-      ..write(obj.locationNote);
+      ..write(obj.colorTag);
   }
 }

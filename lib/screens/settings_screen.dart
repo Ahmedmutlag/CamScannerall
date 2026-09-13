@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../services/backup_service.dart';
 import '../theme/app_colors.dart';
-import 'paywall_screen.dart';
 import 'pin_setup_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -252,23 +251,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   groupValue: settings.languageCode,
                   title: const Text('English'),
                   onChanged: (v) => appState.setLanguage(v!),
-                ),
-                const Divider(),
-                _sectionTitle(s.t('purchaseStatus')),
-                ListTile(
-                  leading: Icon(
-                    settings.isPurchased ? Icons.verified_outlined : Icons.timer_outlined,
-                    color: settings.isPurchased ? AppColors.of(context).accentBrass : null,
-                  ),
-                  title: Text(settings.isPurchased ? s.t('purchased') : s.t('trialActive')),
-                  subtitle: settings.isPurchased ? null : Text('${s.t('daysLeft')}: ${appState.trial.daysLeft}'),
-                  trailing: settings.isPurchased
-                      ? null
-                      : TextButton(
-                          onPressed: () => Navigator.of(context)
-                              .push(MaterialPageRoute(builder: (_) => const PaywallScreen())),
-                          child: Text(s.t('buyNow')),
-                        ),
                 ),
               ],
             ),

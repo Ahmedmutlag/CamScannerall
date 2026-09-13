@@ -1,18 +1,22 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../app_state.dart';
 import '../models/document.dart';
-import '../models/folder.dart';
-import '../services/quick_scan_flow.dart';
 import '../theme/app_colors.dart';
 import '../widgets/empty_state_view.dart';
-import '../widgets/folder_card.dart';
+import '../widgets/full_page_preview.dart';
+import '../widgets/recent_document_tile.dart';
+import 'camera_screen.dart';
 import 'document_detail_screen.dart';
-import 'folder_screen.dart';
-import 'settings_screen.dart';
-import 'timeline_screen.dart';
 
+/// The Home tab: quick tools (scan, import) up top and a flat "Recent"
+/// documents feed below with one-tap actions — the primary landing screen,
+/// so scanning never requires picking a folder first (new scans land in
+/// [AppState.defaultFolderId] and can be filed away later from Files).
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -23,8 +27,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
   String _query = '';
-  bool _selectionMode = false;
-  final Set<String> _selectedFolderIds = {};
+  bool _busy = false;
 
   @override
   void dispose() {
@@ -32,274 +35,175 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _toggleSelection(String folderId) {
-    setState(() {
-      if (_selectedFolderIds.contains(folderId)) {
-        _selectedFolderIds.remove(folderId);
-      } else {
-        _selectedFolderIds.add(folderId);
-      }
-    });
-  }
+  Future<void> _scan() async {
+    final result = await Navigator.of(context).push<List<({String highRes, String lowRes})>>(
+      MaterialPageRoute(builder: (_) => const CameraScreen()),
+    );
+    if (result == null || result.isEmpty || !mounted) return;
 
-  Future<void> _createFolderDialog() async {
     final appState = context.read<AppState>();
     final s = appState.strings;
-    final controller = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(s.t('newFolder')),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(labelText: s.t('folderName')),
+    final (doc, duplicate) = await appState.createDocumentFromPages(pages: result);
+
+    if (duplicate != null && mounted) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(s.t('duplicateFound')),
+          content: Text('${s.t('duplicateBody')}\n\n"${duplicate.name}"'),
+          actions: [FilledButton(onPressed: () => Navigator.pop(context), child: Text(s.t('ok')))],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(s.t('cancel'))),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: Text(s.t('create')),
-          ),
-        ],
+      );
+    }
+    if (mounted) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: doc)));
+    }
+  }
+
+  Future<void> _importFile() async {
+    final file = await FilePicker.pickFile(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+    if (file == null || file.path == null || !mounted) return;
+    final appState = context.read<AppState>();
+
+    setState(() => _busy = true);
+    try {
+      final bytes = await File(file.path!).readAsBytes();
+      final ext = (file.extension ?? '').toLowerCase();
+      final pages = ext == 'pdf' ? await appState.rasterizePdf(bytes) : [bytes];
+      final (doc, _) = await appState.importPages(pageBytesList: pages);
+      if (mounted) {
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: doc)));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _quickView(Document doc) async {
+    final appState = context.read<AppState>();
+    final sorted = List.of(doc.pages)..sort((a, b) => a.order.compareTo(b.order));
+    final removedIndex = await Navigator.of(context).push<int>(
+      MaterialPageRoute(
+        builder: (_) => FullPagePreview(
+          paths: sorted.map((p) => p.imagePathHighRes).toList(),
+          initialIndex: 0,
+        ),
+        fullscreenDialog: true,
       ),
     );
-    if (name != null && name.isNotEmpty) {
-      await appState.createFolder(name);
-    }
+    if (removedIndex != null) await appState.deletePage(doc, sorted[removedIndex]);
   }
 
-  Future<void> _mergeSelected() async {
+  Future<void> _shareAsPdf(Document doc) async {
     final appState = context.read<AppState>();
-    final s = appState.strings;
-    final folders = appState.db.allFolders.where((f) => _selectedFolderIds.contains(f.id)).toList();
-    if (folders.length < 2) return;
-    final controller = TextEditingController(text: folders.first.name);
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(s.t('merge')),
-        content: TextField(controller: controller, decoration: InputDecoration(labelText: s.t('folderName'))),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(s.t('cancel'))),
-          FilledButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: Text(s.t('merge'))),
-        ],
-      ),
+    final bytes = await appState.pdf.buildPdf(doc.pages.map((p) => p.imagePathHighRes).toList());
+    await appState.pdf.sharePdf(bytes, filename: '${doc.name}.pdf');
+  }
+
+  Future<void> _toWord(Document doc) async {
+    final appState = context.read<AppState>();
+    final pagesText = doc.extractedText.isEmpty ? [''] : doc.extractedText.split('\n\n');
+    final bytes = appState.docx.buildDocx(title: doc.name, pagesText: pagesText);
+    await appState.share.shareBytes(
+      bytes,
+      '${doc.name}.docx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     );
-    if (name != null && name.isNotEmpty) {
-      await appState.mergeFolders(folders, name);
-      setState(() {
-        _selectionMode = false;
-        _selectedFolderIds.clear();
-      });
-    }
-  }
-
-  Future<void> _deleteSelected() async {
-    final appState = context.read<AppState>();
-    for (final id in _selectedFolderIds) {
-      final folder = appState.db.folderById(id);
-      if (folder != null) await appState.deleteFolder(folder);
-    }
-    setState(() {
-      _selectionMode = false;
-      _selectedFolderIds.clear();
-    });
-  }
-
-  void _folderTap(Folder folder) {
-    if (_selectionMode) {
-      _toggleSelection(folder.id);
-      return;
-    }
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => FolderScreen(folder: folder)));
   }
 
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
     final s = appState.strings;
-    final isGrid = appState.db.settings.viewMode == 'grid';
+    final colors = AppColors.of(context);
 
     final searching = _query.trim().isNotEmpty;
-    final searchResults = searching ? appState.db.search(_query) : <Document>[];
-    final folders = appState.db.allFolders;
+    final results = searching ? appState.db.search(_query) : appState.db.recentActivity;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_selectionMode
-            ? '${_selectedFolderIds.length} ${s.t('selected')}'
-            : s.t('appName')),
-        leading: _selectionMode
-            ? IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => setState(() {
-                  _selectionMode = false;
-                  _selectedFolderIds.clear();
-                }),
-              )
-            : null,
-        actions: _selectionMode
-            ? [
-                IconButton(
-                  icon: const Icon(Icons.merge_type),
-                  onPressed: _selectedFolderIds.length >= 2 ? _mergeSelected : null,
+      appBar: AppBar(title: Text(s.t('appName'))),
+      body: _busy
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (v) => setState(() => _query = v),
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search),
+                      hintText: s.t('search'),
+                    ),
+                  ),
                 ),
-                IconButton(icon: const Icon(Icons.delete_outline), onPressed: _deleteSelected),
-              ]
-            : [
-                IconButton(
-                  icon: Icon(isGrid ? Icons.view_list : Icons.grid_view),
-                  onPressed: () => appState.setViewMode(isGrid ? 'list' : 'grid'),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.history),
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TimelineScreen())),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.checklist),
-                  onPressed: folders.isEmpty ? null : () => setState(() => _selectionMode = true),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.settings_outlined),
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                if (!searching)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                    child: Row(
+                      children: [
+                        Expanded(child: _toolButton(context, Icons.document_scanner_outlined, s.t('scan'), _scan)),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(child: _toolButton(context, Icons.file_upload_outlined, s.t('importFile'), _importFile)),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: AppSpacing.sm),
+                if (!searching)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.xs),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(s.t('recent'), style: Theme.of(context).textTheme.titleSmall),
+                    ),
+                  ),
+                Expanded(
+                  child: results.isEmpty
+                      ? EmptyStateView(message: searching ? s.t('noSearchResults') : s.t('noRecent'))
+                      : ListView.separated(
+                          itemCount: results.length,
+                          separatorBuilder: (_, _) =>
+                              Divider(color: colors.divider, height: 1, indent: AppSpacing.md, endIndent: AppSpacing.md),
+                          itemBuilder: (context, index) {
+                            final doc = results[index];
+                            return RecentDocumentTile(
+                              document: doc,
+                              viewLabel: s.t('view'),
+                              toWordLabel: s.t('wordShort'),
+                              shareLabel: s.t('share'),
+                              onTap: () => Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: doc))),
+                              onView: () => _quickView(doc),
+                              onToWord: () => _toWord(doc),
+                              onShare: () => _shareAsPdf(doc),
+                            );
+                          },
+                        ),
                 ),
               ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm,
-            ),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (v) => setState(() => _query = v),
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: s.t('search'),
-              ),
-            ),
-          ),
-          Expanded(
-            child: searching
-                ? _buildSearchResults(searchResults, appState)
-                : folders.isEmpty
-                    ? EmptyStateView(
-                        message: s.t('noFolders'),
-                        actionLabel: s.t('newFolder'),
-                        onAction: _createFolderDialog,
-                      )
-                    : _buildFolderList(folders, isGrid, appState),
-          ),
-        ],
-      ),
-      floatingActionButton: _selectionMode
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: _showAddMenu,
-              icon: const Icon(Icons.add),
-              label: Text(s.t('newFolder')),
             ),
     );
   }
 
-  Widget _buildSearchResults(List<Document> results, AppState appState) {
+  Widget _toolButton(BuildContext context, IconData icon, String label, VoidCallback onTap) {
     final colors = AppColors.of(context);
-    if (results.isEmpty) {
-      return EmptyStateView(message: appState.strings.t('noSearchResults'));
-    }
-    return ListView.separated(
-      itemCount: results.length,
-      separatorBuilder: (_, _) => Divider(color: colors.divider, height: 1, indent: AppSpacing.md, endIndent: AppSpacing.md),
-      itemBuilder: (context, index) {
-        final doc = results[index];
-        return ListTile(
-          leading: Icon(Icons.description_outlined, color: colors.primaryInk),
-          title: Text(doc.name),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: doc)),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFolderList(List<Folder> folders, bool isGrid, AppState appState) {
-    final colors = AppColors.of(context);
-    if (isGrid) {
-      return GridView.builder(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: AppSpacing.md,
-          crossAxisSpacing: AppSpacing.md,
-          childAspectRatio: 1.1,
-        ),
-        itemCount: folders.length,
-        itemBuilder: (context, index) {
-          final folder = folders[index];
-          return FolderCard(
-            folder: folder,
-            documentCount: appState.db.documentsForFolder(folder.id).length,
-            isGrid: true,
-            selected: _selectedFolderIds.contains(folder.id),
-            selectionMode: _selectionMode,
-            onTap: () => _folderTap(folder),
-            onLongPress: () => setState(() {
-              _selectionMode = true;
-              _selectedFolderIds.add(folder.id);
-            }),
-          );
-        },
-      );
-    }
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      itemCount: folders.length,
-      separatorBuilder: (_, _) => Divider(color: colors.divider, height: 1, indent: AppSpacing.md, endIndent: AppSpacing.md),
-      itemBuilder: (context, index) {
-        final folder = folders[index];
-        return FolderCard(
-          folder: folder,
-          documentCount: appState.db.documentsForFolder(folder.id).length,
-          isGrid: false,
-          selected: _selectedFolderIds.contains(folder.id),
-          selectionMode: _selectionMode,
-          onTap: () => _folderTap(folder),
-          onLongPress: () => setState(() {
-            _selectionMode = true;
-            _selectedFolderIds.add(folder.id);
-          }),
-        );
-      },
-    );
-  }
-
-  Future<void> _showAddMenu() async {
-    final appState = context.read<AppState>();
-    final s = appState.strings;
-    await showModalBottomSheet<void>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppRadius.radius,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Column(
           children: [
-            ListTile(
-              leading: const Icon(Icons.create_new_folder_outlined),
-              title: Text(s.t('newFolder')),
-              onTap: () {
-                Navigator.pop(context);
-                _createFolderDialog();
-              },
+            CircleAvatar(
+              radius: 26,
+              backgroundColor: colors.backgroundPrimary,
+              child: Icon(icon, color: colors.primaryInk),
             ),
-            ListTile(
-              leading: const Icon(Icons.bolt_outlined),
-              title: Text(s.t('scanQuick')),
-              onTap: () {
-                Navigator.pop(context);
-                runQuickScanAndShare(context);
-              },
-            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(label, style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
           ],
         ),
       ),

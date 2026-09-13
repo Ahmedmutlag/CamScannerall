@@ -11,7 +11,6 @@ import '../theme/app_colors.dart';
 import '../widgets/full_page_preview.dart';
 import 'camera_screen.dart';
 import 'ocr_screen.dart';
-import 'signature_screen.dart';
 
 class DocumentDetailScreen extends StatefulWidget {
   const DocumentDetailScreen({super.key, required this.document});
@@ -23,11 +22,6 @@ class DocumentDetailScreen extends StatefulWidget {
 }
 
 class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
-  late final TextEditingController _validUntilController =
-      TextEditingController(text: widget.document.manualValidUntilNote ?? '');
-  late final TextEditingController _locationController =
-      TextEditingController(text: widget.document.locationNote ?? '');
-
   static const _colorOptions = <int>[
     0xFFEF5350,
     0xFFFFA726,
@@ -36,13 +30,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     0xFF42A5F5,
     0xFFAB47BC,
   ];
-
-  @override
-  void dispose() {
-    _validUntilController.dispose();
-    _locationController.dispose();
-    super.dispose();
-  }
 
   Document get doc => widget.document;
 
@@ -99,13 +86,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     setState(() {});
   }
 
-  Future<void> _saveNotes() async {
-    doc.manualValidUntilNote = _validUntilController.text.trim().isEmpty ? null : _validUntilController.text.trim();
-    doc.locationNote = _locationController.text.trim().isEmpty ? null : _locationController.text.trim();
-    await doc.save();
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.read<AppState>().strings.t('save'))));
-  }
-
   Future<void> _setColor(int color) async {
     doc.colorTag = color;
     await doc.save();
@@ -140,11 +120,8 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
 
   /// The one deliberate, explicit exception to the app's "everything stays
   /// in the private sandbox" default (see PRIVACY_POLICY.md): copies this
-  /// document's pages into the phone's normal public photo gallery, for
-  /// when the user wants to use them like ordinary photos (open them from
-  /// Photos, back them up via their usual photo backup, hand them to an
-  /// app that only accepts gallery images). Nothing reaches the gallery
-  /// unless the user taps this themselves.
+  /// document's pages into the phone's normal public photo gallery.
+  /// Nothing reaches the gallery unless the user taps this themselves.
   Future<void> _saveToGallery() async {
     final appState = context.read<AppState>();
     final s = appState.strings;
@@ -177,11 +154,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
           ListTile(leading: const Icon(Icons.image_outlined), title: Text(s.t('pdfToImages')), onTap: () => Navigator.pop(context, 'images')),
           ListTile(leading: const Icon(Icons.call_split), title: Text(s.t('splitPdf')), onTap: () => Navigator.pop(context, 'split')),
           ListTile(leading: const Icon(Icons.compress), title: Text(s.t('compressPdf')), onTap: () => Navigator.pop(context, 'compress')),
-          ListTile(
-            leading: Icon(Icons.lock_outline, color: AppColors.of(context).accentBrass),
-            title: Text(s.t('protectPassword')),
-            onTap: () => Navigator.pop(context, 'protect'),
-          ),
         ]),
       ),
     );
@@ -195,8 +167,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
         await _split();
       case 'compress':
         await _compress();
-      case 'protect':
-        await _protect();
     }
   }
 
@@ -245,27 +215,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     final appState = context.read<AppState>();
     final bytes = await appState.pdf.compressPdf(doc.pages.map((p) => p.imagePathHighRes).toList());
     await appState.pdf.sharePdf(bytes, filename: '${doc.name}_compressed.pdf');
-  }
-
-  Future<void> _protect() async {
-    final appState = context.read<AppState>();
-    final s = appState.strings;
-    final controller = TextEditingController();
-    final password = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(s.t('protectPassword')),
-        content: TextField(controller: controller, obscureText: true, decoration: InputDecoration(labelText: s.t('pdfPasswordHint'))),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(s.t('cancel'))),
-          FilledButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(s.t('ok'))),
-        ],
-      ),
-    );
-    if (password == null || password.isEmpty) return;
-    final pdfBytes = await appState.pdf.buildPdf(doc.pages.map((p) => p.imagePathHighRes).toList());
-    final protectedBytes = await appState.pdfProtection.protect(pdfBytes, password);
-    await appState.pdf.sharePdf(protectedBytes, filename: '${doc.name}.pdf');
   }
 
   Future<void> _moveOrCopy({required bool move}) async {
@@ -368,18 +317,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                 .toList(),
           ),
           const SizedBox(height: AppSpacing.md),
-          TextField(
-            controller: _validUntilController,
-            decoration: InputDecoration(labelText: s.t('validUntilNote')),
-            onEditingComplete: _saveNotes,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          TextField(
-            controller: _locationController,
-            decoration: InputDecoration(labelText: s.t('locationNote')),
-            onEditingComplete: _saveNotes,
-          ),
-          const SizedBox(height: AppSpacing.md),
           Wrap(
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
@@ -387,8 +324,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
               _actionChip(Icons.share_outlined, s.t('share'), _shareFlow),
               _actionChip(Icons.save_alt_outlined, s.t('saveToGallery'), _saveToGallery),
               _actionChip(Icons.print_outlined, s.t('print'), _print),
-              _actionChip(Icons.draw_outlined, s.t('sign'), () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => SignatureScreen(document: doc)))),
               _actionChip(Icons.text_snippet_outlined, s.t('extractText'),
                   () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => OcrScreen(document: doc)))),
               _actionChip(Icons.transform, s.t('convertFormat'), _convertMenu),

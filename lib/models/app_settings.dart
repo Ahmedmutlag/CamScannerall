@@ -7,8 +7,6 @@ class AppSettings extends HiveObject {
     this.biometricEnabled = false,
     this.autoLockMinutes = 15,
     this.lastBackupDate,
-    this.trialStartDate,
-    this.isPurchased = false,
     this.viewMode = 'list',
     this.languageCode = 'ar',
     this.autoBackupFolderPath,
@@ -18,8 +16,6 @@ class AppSettings extends HiveObject {
   bool biometricEnabled;
   int autoLockMinutes;
   DateTime? lastBackupDate;
-  DateTime? trialStartDate;
-  bool isPurchased;
   String viewMode; // 'grid' or 'list'
   String languageCode; // 'ar' or 'en'
   String? autoBackupFolderPath;
@@ -40,18 +36,16 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       biometricEnabled: fields[1] as bool? ?? false,
       autoLockMinutes: fields[2] as int? ?? 15,
       lastBackupDate: fields[3] as DateTime?,
-      trialStartDate: fields[4] as DateTime?,
-      isPurchased: fields[5] as bool? ?? false,
-      viewMode: fields[6] as String? ?? 'list',
-      languageCode: fields[7] as String? ?? 'ar',
-      autoBackupFolderPath: fields[8] as String?,
+      viewMode: fields[4] as String? ?? 'list',
+      languageCode: fields[5] as String? ?? 'ar',
+      autoBackupFolderPath: fields[6] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.pinHash)
       ..writeByte(1)
@@ -61,14 +55,10 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(3)
       ..write(obj.lastBackupDate)
       ..writeByte(4)
-      ..write(obj.trialStartDate)
-      ..writeByte(5)
-      ..write(obj.isPurchased)
-      ..writeByte(6)
       ..write(obj.viewMode)
-      ..writeByte(7)
+      ..writeByte(5)
       ..write(obj.languageCode)
-      ..writeByte(8)
+      ..writeByte(6)
       ..write(obj.autoBackupFolderPath);
   }
 }

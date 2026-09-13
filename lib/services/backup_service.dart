@@ -112,8 +112,6 @@ class BackupService {
                 'extractedText': d.extractedText,
                 'createdAt': d.createdAt.toIso8601String(),
                 'colorTag': d.colorTag,
-                'manualValidUntilNote': d.manualValidUntilNote,
-                'locationNote': d.locationNote,
                 'pages': d.pages
                     .map((p) => {
                           'id': p.id,
@@ -225,8 +223,6 @@ class BackupService {
         extractedText: map['extractedText'] as String? ?? '',
         createdAt: DateTime.parse(map['createdAt'] as String),
         colorTag: map['colorTag'] as int?,
-        manualValidUntilNote: map['manualValidUntilNote'] as String?,
-        locationNote: map['locationNote'] as String?,
       ));
     }
 

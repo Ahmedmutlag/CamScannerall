@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
+import 'package:printing/printing.dart';
 import 'package:uuid/uuid.dart';
 
 import 'l10n/strings.dart';
@@ -16,61 +19,28 @@ import 'services/image_processing_service.dart';
 import 'services/lock_service.dart';
 import 'services/notification_service.dart';
 import 'services/ocr_service.dart';
-import 'services/pdf_protection_service.dart';
 import 'services/pdf_service.dart';
-import 'services/purchase_service.dart';
-import 'services/quick_actions_service.dart';
 import 'services/share_service.dart';
-import 'services/signature_service.dart';
-import 'services/trial_service.dart';
+import 'services/storage_paths.dart';
 
 /// The single composition root: owns every service instance and exposes
 /// the cross-cutting operations screens need (folder/document CRUD, the
 /// capture -> OCR -> duplicate-check -> save pipeline, lock state).
-/// Individual feature services remain directly accessible for
-/// feature-specific screens (backup, signature, PDF tools...).
 class AppState extends ChangeNotifier {
   final DatabaseService db = DatabaseService.instance;
-  late final TrialService trial = TrialService(db);
   late final LockService lock = LockService(db);
   final OcrService ocr = OcrService();
   final ImageProcessingService imageProcessing = ImageProcessingService();
   final PdfService pdf = PdfService();
   final DocxExportService docx = DocxExportService();
   late final BackupService backup = BackupService(db);
-  final SignatureService signature = SignatureService();
   late final NotificationService notifications = NotificationService(db);
   late final DuplicateDetectionService duplicates = DuplicateDetectionService(db);
   final ShareService share = ShareService();
-  final GalleryService gallery = GalleryService();
   final ExportService export = ExportService();
-  final PdfProtectionService pdfProtection = PdfProtectionService();
-  late final PurchaseService purchase = PurchaseService(db);
-  final QuickActionsService quickActions = QuickActionsService();
+  final GalleryService gallery = GalleryService();
 
-  bool isUnlockedThisSession = false;
-
-  /// Folder id -> (document id, when a page was last added to it). Used
-  /// only to offer "add to the document you just scanned" instead of
-  /// always starting a brand new one when the user scans again moments
-  /// later into the same folder. Intentionally in-memory only: once the
-  /// app has been closed for a while, starting fresh is the safer default.
-  final Map<String, ({String docId, DateTime at})> _recentDocumentActivity = {};
-  static const Duration _groupingWindow = Duration(minutes: 3);
-
-  void _markDocumentActivity(String folderId, String docId) {
-    _recentDocumentActivity[folderId] = (docId: docId, at: DateTime.now());
-  }
-
-  /// Returns the just-scanned document in [folderId], if any page was
-  /// added to it within the last few minutes, so the caller can offer to
-  /// group a new scan into it instead of creating a separate document.
-  Document? recentDocumentForFolder(String folderId) {
-    final activity = _recentDocumentActivity[folderId];
-    if (activity == null) return null;
-    if (DateTime.now().difference(activity.at) > _groupingWindow) return null;
-    return db.documentById(activity.docId);
-  }
+  static const String defaultFolderId = 'default';
 
   AppStrings get strings => AppStrings(db.settings.languageCode);
 
@@ -78,8 +48,9 @@ class AppState extends ChangeNotifier {
 
   Future<void> init() async {
     await db.init();
-    await trial.ensureTrialStarted();
+    await _ensureDefaultFolder();
     await notifications.init();
+
     final hasAutoBackupFolder = (db.settings.autoBackupFolderPath ?? '').isNotEmpty;
     if (hasAutoBackupFolder) {
       await backup.maybeRunAutomaticBackup();
@@ -89,10 +60,19 @@ class AppState extends ChangeNotifier {
         strings.t('backupReminderBody'),
       );
     }
-    // Store connectivity is not required for the app to function; init in
-    // the background so a slow/offline store never blocks app startup.
-    // ignore: discarded_futures
-    purchase.init();
+  }
+
+  /// Every quick scan/import from the Home screen lands here unless the
+  /// user explicitly organizes it into another folder from the Files tab
+  /// — keeps the primary flow (open app, scan, done) free of an upfront
+  /// "which folder?" prompt.
+  Future<void> _ensureDefaultFolder() async {
+    if (db.folderById(defaultFolderId) != null) return;
+    await db.addFolder(Folder(
+      id: defaultFolderId,
+      name: strings.t('documents'),
+      createdAt: DateTime.now(),
+    ));
   }
 
   // ---------------- Settings ----------------
@@ -112,10 +92,6 @@ class AppState extends ChangeNotifier {
   }
 
   AppSettings get settings => db.settings;
-
-  /// Call after a purchase/restore completes so widgets watching [AppState]
-  /// (e.g. the paywall) re-check `trial.isPurchased` and rebuild.
-  void refreshPurchaseState() => notifyListeners();
 
   // ---------------- Folders ----------------
 
@@ -149,7 +125,9 @@ class AppState extends ChangeNotifier {
         doc.folderId = target.id;
         await doc.save();
       }
-      await db.deleteFolder(folder.id, deleteDocuments: false);
+      if (folder.id != defaultFolderId) {
+        await db.deleteFolder(folder.id, deleteDocuments: false);
+      }
     }
     notifyListeners();
     return target;
@@ -163,7 +141,7 @@ class AppState extends ChangeNotifier {
   /// everything. Returns the created document plus an optional duplicate
   /// match the caller can warn the user about.
   Future<(Document, Document?)> createDocumentFromPages({
-    required String folderId,
+    String? folderId,
     required List<({String highRes, String lowRes})> pages,
     String? nameOverride,
   }) async {
@@ -187,7 +165,7 @@ class AppState extends ChangeNotifier {
 
     final document = Document(
       id: docId,
-      folderId: folderId,
+      folderId: folderId ?? defaultFolderId,
       name: name,
       pages: docPages,
       extractedText: extractedText,
@@ -197,36 +175,46 @@ class AppState extends ChangeNotifier {
     final duplicate = duplicates.findLikelyDuplicate(document);
 
     await db.addDocument(document);
-    _markDocumentActivity(folderId, docId);
     notifyListeners();
     return (document, duplicate);
   }
 
-  /// Appends freshly captured pages to an existing [doc] (re-running OCR
-  /// across the full, now-longer page set) instead of creating a new
-  /// document — used both by "add another page" on the detail screen and
-  /// by the same-session grouping suggestion in the folder screen.
-  Future<void> addPagesToDocument(
-    Document doc,
-    List<({String highRes, String lowRes})> pages,
-  ) async {
-    var order = doc.pages.length;
-    final newPages = <DocPage>[];
-    for (final p in pages) {
-      newPages.add(DocPage(
-        id: const Uuid().v4(),
-        documentId: doc.id,
-        imagePathHighRes: p.highRes,
-        imagePathLowRes: p.lowRes,
-        order: order,
-      ));
-      order++;
+  /// Imports pages already produced elsewhere (an existing image, or a
+  /// PDF rasterized page-by-page) as a new document — same save pipeline
+  /// as a fresh scan, minus perspective correction (nothing to rectify).
+  Future<(Document, Document?)> importPages({
+    String? folderId,
+    required List<Uint8List> pageBytesList,
+    String? nameOverride,
+  }) async {
+    final outDir = await StoragePaths.scansDirectory();
+    final tempDir = await Directory.systemTemp.createTemp('import');
+    final pages = <({String highRes, String lowRes})>[];
+    for (final bytes in pageBytesList) {
+      final pageId = const Uuid().v4();
+      final tempFile = File('${tempDir.path}/$pageId.png');
+      await tempFile.writeAsBytes(bytes);
+      final (highRes, lowRes) = await imageProcessing.processAndSave(
+        sourcePath: tempFile.path,
+        outputDir: outDir.path,
+        pageId: pageId,
+      );
+      pages.add((highRes: highRes, lowRes: lowRes));
     }
-    doc.pages = [...doc.pages, ...newPages];
-    doc.extractedText = await ocr.extractTextFromPages(doc.pages.map((p) => p.imagePathHighRes).toList());
-    await doc.save();
-    _markDocumentActivity(doc.folderId, doc.id);
-    notifyListeners();
+    await tempDir.delete(recursive: true);
+    return createDocumentFromPages(folderId: folderId, pages: pages, nameOverride: nameOverride);
+  }
+
+  /// Rasterizes an existing PDF file into one page image per PDF page, at
+  /// print quality, using the `printing` package (already a dependency
+  /// for the app's own PDF export) — no extra dependency needed just to
+  /// let the user import a PDF they already have.
+  Future<List<Uint8List>> rasterizePdf(Uint8List pdfBytes) async {
+    final pages = <Uint8List>[];
+    await for (final page in Printing.raster(pdfBytes, dpi: 200)) {
+      pages.add(await page.toPng());
+    }
+    return pages;
   }
 
   Future<void> renameDocument(Document doc, String newName) async {
@@ -258,8 +246,6 @@ class AppState extends ChangeNotifier {
       extractedText: doc.extractedText,
       createdAt: DateTime.now(),
       colorTag: doc.colorTag,
-      manualValidUntilNote: doc.manualValidUntilNote,
-      locationNote: doc.locationNote,
     );
     for (final p in newPages) {
       p.documentId = newDoc.id;
@@ -293,6 +279,31 @@ class AppState extends ChangeNotifier {
       pages[i].order = i;
     }
     doc.pages = pages;
+    await doc.save();
+    notifyListeners();
+  }
+
+  /// Appends freshly captured pages to an existing [doc] (re-running OCR
+  /// across the full, now-longer page set) instead of creating a new
+  /// document.
+  Future<void> addPagesToDocument(
+    Document doc,
+    List<({String highRes, String lowRes})> pages,
+  ) async {
+    var order = doc.pages.length;
+    final newPages = <DocPage>[];
+    for (final p in pages) {
+      newPages.add(DocPage(
+        id: const Uuid().v4(),
+        documentId: doc.id,
+        imagePathHighRes: p.highRes,
+        imagePathLowRes: p.lowRes,
+        order: order,
+      ));
+      order++;
+    }
+    doc.pages = [...doc.pages, ...newPages];
+    doc.extractedText = await ocr.extractTextFromPages(doc.pages.map((p) => p.imagePathHighRes).toList());
     await doc.save();
     notifyListeners();
   }

@@ -5,9 +5,6 @@ import 'package:provider/provider.dart';
 import 'app_state.dart';
 import 'screens/lock_screen.dart';
 import 'screens/splash_screen.dart';
-import 'services/quick_actions_service.dart';
-import 'services/quick_scan_flow.dart';
-import 'services/quick_tile_channel.dart';
 import 'theme/app_theme.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -24,22 +21,6 @@ class _ScannerAppState extends State<ScannerApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _initQuickEntryPoints());
-  }
-
-  Future<void> _initQuickEntryPoints() async {
-    final appState = context.read<AppState>();
-    await appState.quickActions.init(onAction: (type) {
-      if (type == QuickActionsService.scanActionType) _openQuickScan();
-    });
-    QuickTileChannel.listen(_openQuickScan);
-    final pending = await QuickTileChannel.consumePendingAction();
-    if (pending) _openQuickScan();
-  }
-
-  void _openQuickScan() {
-    final ctx = rootNavigatorKey.currentContext;
-    if (ctx != null) runQuickScanAndShare(ctx);
   }
 
   @override

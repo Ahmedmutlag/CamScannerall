@@ -1,10 +1,10 @@
 # سياسة الخصوصية — سكانر المستندات (CamScannerAll)
 
-**آخر تحديث:** 2026-09-12
+**آخر تحديث:** 2026-09-13
 
-هذا التطبيق مصمم من الأساس بدون أي خادم (Backend) خاص بنا، وبدون حساب
-مستخدم، وبدون رفع أي من بياناتك لأي مكان. هذه الصفحة تشرح بالتفصيل ماذا
-يحدث لبياناتك بالضبط.
+هذا التطبيق **مجاني بالكامل**، ومصمم من الأساس بدون أي خادم (Backend) خاص
+بنا، وبدون حساب مستخدم، وبدون رفع أي من بياناتك لأي مكان، وبدون أي اتصال
+بالإنترنت لأي غرض. هذه الصفحة تشرح بالتفصيل ماذا يحدث لبياناتك بالضبط.
 
 ## 1. البيانات التي لا نجمعها إطلاقاً
 
@@ -29,32 +29,23 @@
 | بيانات المجلدات والمستندات والفهرسة | قاعدة بيانات محلية (Hive) على جهازك |
 | رمز القفل (PIN) | مُشفَّر (hash) ومخزَّن محلياً؛ لا يُخزَّن كنص صريح |
 | بصمة الإصبع / الوجه | تُدار بالكامل عبر نظام التشغيل (Android/iOS)، ولا يصل التطبيق لبيانات البصمة نفسها إطلاقاً — فقط نتيجة "نجح/فشل" |
-| ملفات النسخ الاحتياطي | تُنشأ محلياً، مشفّرة بكلمة سر تحددها أنت، وتُحفظ حيث تختار أنت (تخزينك الشخصي بغوغل درايف، إيميلك، فلاش ميموري...) — التطبيق لا يرفعها لأي مكان بنفسه |
+| ملفات النسخ الاحتياطي | تُنشأ محلياً، مشفّرة (بكلمة سر تحددها أنت عند الإنشاء اليدوي، أو بمفتاح داخلي بجهازك عند التفعيل التلقائي)، وتُحفظ حيث تختار أنت — التطبيق لا يرفعها لأي مكان بنفسه |
 
 ## 3. استخراج النص (OCR)
 
 يستخدم التطبيق مكتبة **Google ML Kit** للتعرف على النص، وتعمل بالكامل
 **على جهازك (on-device)**. الصور لا تُرسَل لأي خادم لمعالجتها.
 
-## 4. الشراء داخل التطبيق (استثناء الشبكة الوحيد)
-
-المكان الوحيد الذي يتصل فيه التطبيق بالإنترنت هو عملية الشراء نفسها، عبر
-**Google Play Billing** مباشرة. هذا يعني:
-
-- عند الشراء، جوجل (وليس نحن) يتولى معالجة الدفع والتحقق منه
-- نحن لا نرى ولا نخزّن بيانات بطاقتك أو دفعتك إطلاقاً
-- تخضع هذه العملية لسياسة خصوصية جوجل بلاي الخاصة بها
-
-## 5. الأذونات التي يطلبها التطبيق ولماذا
+## 4. الأذونات التي يطلبها التطبيق ولماذا
 
 | الإذن | لماذا نحتاجه |
 |---|---|
 | الكاميرا | لمسح المستندات فقط — لا تصوير أو تسجيل لأي غرض آخر |
 | الإشعارات | تذكير دوري محلي بعمل نسخة احتياطية (لا يحتوي أي بيانات شخصية) |
-| البصمة/التعرف على الوجه (اختياري) | فتح قفل التطبيق فقط، إن فعّلته أنت بنفسه من الإعدادات |
-| الوصول لملف عند الاسترجاع | لقراءة ملف النسخة الاحتياطية الذي تختاره أنت يدوياً |
+| البصمة/التعرف على الوجه (اختياري) | فتح قفل التطبيق فقط، إن فعّلته أنت بنفسك من الإعدادات |
+| الوصول لملف عند الاستيراد/الاسترجاع | لقراءة الملف الذي تختاره أنت يدوياً (مستند تستورده، أو نسخة احتياطية تسترجعها) |
 
-## 6. المشاركة مع أطراف ثالثة
+## 5. المشاركة مع أطراف ثالثة
 
 **لا نشارك أي بيانات مع أي طرف ثالث**، لأننا أصلاً لا نملك أي بيانات نشاركها.
 الاستثناء الوحيد هو ما تفعله أنت بنفسك: إذا اخترت مشاركة مستند عبر واتساب
@@ -67,7 +58,7 @@
 النسخ الاحتياطي للصور) الوصول لها، تماماً كأي صورة تلتقطها بكاميرا
 هاتفك — النسخة الأصلية داخل مساحة التطبيق الخاصة تبقى محمية كما هي.
 
-## 7. حذف بياناتك
+## 6. حذف بياناتك
 
 بما أن كل بياناتك محلية على جهازك فقط:
 
@@ -79,12 +70,12 @@
 يعني **فقدان دائم لبياناتك** — هذا مقصود لحماية خصوصيتك الكاملة، ولا يمكننا
 استرجاعها لك لأننا لا نملك نسخة منها أصلاً.
 
-## 8. خصوصية الأطفال
+## 7. خصوصية الأطفال
 
 هذا التطبيق غير موجّه للأطفال دون سن 13 عاماً، ولا يجمع بياناتهم عمداً (ولا
 بيانات أي أحد أصلاً، كما هو موضح أعلاه).
 
-## 9. التواصل معنا
+## 8. التواصل معنا
 
 لأي استفسار حول هذه السياسة، يمكن التواصل عبر:
 **ahmed.alabdan2@gmail.com**
@@ -93,10 +84,11 @@
 
 # Privacy Policy — Document Scanner (CamScannerAll) [English]
 
-**Last updated:** 2026-09-12
+**Last updated:** 2026-09-13
 
-This app is built from the ground up with no backend server of our own, no
-user account, and no upload of your data anywhere. This page explains
+This app is **completely free**, and built from the ground up with no
+backend server of our own, no user account, no upload of your data
+anywhere, and no internet connection for any purpose. This page explains
 exactly what happens to your data.
 
 ## 1. Data we never collect
@@ -122,32 +114,23 @@ sandbox storage, which no other app can access.
 | Folder/document metadata & index | A local database (Hive) on your device |
 | Lock PIN | Stored locally as a salted hash, never as plain text |
 | Fingerprint / Face data | Handled entirely by your OS (Android/iOS); the app never receives the biometric data itself, only a pass/fail result |
-| Backup files | Generated locally, encrypted with a password you choose, and saved wherever you pick (your personal Google Drive, email, USB drive...) — the app never uploads them itself |
+| Backup files | Generated locally, encrypted (with a password you choose for a manual backup, or a device-only internal key if you enable automatic backups), and saved wherever you pick — the app never uploads them itself |
 
 ## 3. Text recognition (OCR)
 
 The app uses **Google ML Kit** for text recognition, running entirely
 **on-device**. Images are never sent to any server for processing.
 
-## 4. In-app purchase (the one network exception)
-
-The only place this app talks to the internet is the purchase flow itself,
-via **Google Play Billing** directly:
-
-- Google (not us) handles and verifies the payment
-- We never see or store your card or payment details
-- This flow is covered by Google Play's own privacy policy
-
-## 5. Permissions requested and why
+## 4. Permissions requested and why
 
 | Permission | Why we need it |
 |---|---|
 | Camera | Only to scan documents — never for any other recording |
 | Notifications | A local, periodic reminder to back up your data (contains no personal information) |
 | Biometrics (optional) | Only to unlock the app, if you enable it yourself in Settings |
-| File access on restore | To read the backup file you manually choose |
+| File access on import/restore | To read a file you manually choose (a document you import, or a backup you restore) |
 
-## 6. Third-party sharing
+## 5. Third-party sharing
 
 **We share no data with any third party**, because we don't hold any data
 to share in the first place. The one exception is your own action: if you
@@ -163,7 +146,7 @@ photo backup app) can access, just like any picture taken with your
 camera — the original inside the app's private storage stays protected as
 before.
 
-## 7. Deleting your data
+## 6. Deleting your data
 
 Since all your data is local to your device only:
 
@@ -176,12 +159,12 @@ manual backup first means **permanent data loss** — this is intentional,
 to protect your complete privacy, and we cannot recover it for you since we
 never held a copy.
 
-## 8. Children's privacy
+## 7. Children's privacy
 
 This app is not directed at children under 13 and does not knowingly
 collect their data (or anyone's data, as explained above).
 
-## 9. Contact us
+## 8. Contact us
 
 For any question about this policy, contact:
 **ahmed.alabdan2@gmail.com**

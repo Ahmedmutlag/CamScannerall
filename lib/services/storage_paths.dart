@@ -19,15 +19,6 @@ class StoragePaths {
     return dir;
   }
 
-  static Future<Directory> signaturesDirectory() async {
-    final docs = await getApplicationDocumentsDirectory();
-    final dir = Directory('${docs.path}/signatures');
-    if (!await dir.exists()) {
-      await dir.create(recursive: true);
-    }
-    return dir;
-  }
-
   static Future<Directory> tempExportDirectory() async {
     final tmp = await getTemporaryDirectory();
     final dir = Directory('${tmp.path}/export');
