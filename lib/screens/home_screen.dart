@@ -145,9 +145,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                     child: Row(
                       children: [
-                        Expanded(child: _toolButton(context, Icons.document_scanner_outlined, s.t('scan'), _scan)),
+                        Expanded(
+                          child: _toolButton(
+                            context,
+                            icon: Icons.document_scanner_outlined,
+                            label: s.t('scan'),
+                            background: const Color(0xFFDCF5F0),
+                            foreground: const Color(0xFF0E9384),
+                            onTap: _scan,
+                          ),
+                        ),
                         const SizedBox(width: AppSpacing.md),
-                        Expanded(child: _toolButton(context, Icons.file_upload_outlined, s.t('importFile'), _importFile)),
+                        Expanded(
+                          child: _toolButton(
+                            context,
+                            icon: Icons.file_upload_outlined,
+                            label: s.t('importFile'),
+                            background: const Color(0xFFE0EEFF),
+                            foreground: const Color(0xFF2563EB),
+                            onTap: _importFile,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -188,8 +206,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _toolButton(BuildContext context, IconData icon, String label, VoidCallback onTap) {
-    final colors = AppColors.of(context);
+  Widget _toolButton(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Color background,
+    required Color foreground,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: AppRadius.radius,
@@ -199,8 +223,8 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             CircleAvatar(
               radius: 26,
-              backgroundColor: colors.backgroundPrimary,
-              child: Icon(icon, color: colors.primaryInk),
+              backgroundColor: background,
+              child: Icon(icon, color: foreground),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(label, style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
