@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../app_state.dart';
-import 'files_screen.dart';
 import 'home_screen.dart';
-import 'settings_screen.dart';
+import 'print_documents_screen.dart';
 
-/// Bottom-nav shell: Home (scan + recent), Files (folders), Settings —
-/// kept to three plain tabs on purpose.
+/// Bottom-nav shell: Home (scan + recent + files/settings access) and
+/// Print Documents — kept to two sections on purpose. Files and Settings
+/// live one tap into Home rather than as their own tabs.
 class RootShell extends StatefulWidget {
   const RootShell({super.key});
 
@@ -18,7 +18,7 @@ class RootShell extends StatefulWidget {
 class _RootShellState extends State<RootShell> {
   int _index = 0;
 
-  static const _tabs = [HomeScreen(), FilesScreen(), SettingsScreen()];
+  static const _tabs = [HomeScreen(), PrintDocumentsScreen()];
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +30,7 @@ class _RootShellState extends State<RootShell> {
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: [
           NavigationDestination(icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home), label: s.t('home')),
-          NavigationDestination(icon: const Icon(Icons.folder_outlined), selectedIcon: const Icon(Icons.folder), label: s.t('files')),
-          NavigationDestination(icon: const Icon(Icons.settings_outlined), selectedIcon: const Icon(Icons.settings), label: s.t('settings')),
+          NavigationDestination(icon: const Icon(Icons.print_outlined), selectedIcon: const Icon(Icons.print), label: s.t('printDocuments')),
         ],
       ),
     );

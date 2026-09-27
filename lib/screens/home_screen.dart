@@ -12,6 +12,8 @@ import '../widgets/full_page_preview.dart';
 import '../widgets/recent_document_tile.dart';
 import 'camera_screen.dart';
 import 'document_detail_screen.dart';
+import 'files_screen.dart';
+import 'settings_screen.dart';
 
 /// The Home tab: quick tools (scan, import) up top and a flat "Recent"
 /// documents feed below with one-tap actions — the primary landing screen,
@@ -124,7 +126,21 @@ class _HomeScreenState extends State<HomeScreen> {
     final results = searching ? appState.db.search(_query) : appState.db.recentActivity;
 
     return Scaffold(
-      appBar: AppBar(title: Text(s.t('appName'))),
+      appBar: AppBar(
+        title: Text(s.t('appName')),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.folder_outlined),
+            tooltip: s.t('files'),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FilesScreen())),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: s.t('settings'),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
+          ),
+        ],
+      ),
       body: _busy
           ? const Center(child: CircularProgressIndicator())
           : Column(
