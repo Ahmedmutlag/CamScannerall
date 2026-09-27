@@ -112,6 +112,18 @@ class _FolderScreenState extends State<FolderScreen> {
     });
   }
 
+  Future<void> _mergeSelectedToPdf(List<Document> allDocs) async {
+    final appState = context.read<AppState>();
+    final docs = allDocs.where((d) => _selectedIds.contains(d.id)).toList();
+    if (docs.length < 2) return;
+    final bytes = await appState.mergeDocumentsToPdf(docs);
+    await appState.pdf.sharePdf(bytes, filename: '${widget.folder.name}_merged.pdf');
+    setState(() {
+      _selectionMode = false;
+      _selectedIds.clear();
+    });
+  }
+
   Future<void> _exportBatch(List<Document> docs) async {
     final appState = context.read<AppState>();
     final files = <String, Uint8List>{};
@@ -150,6 +162,11 @@ class _FolderScreenState extends State<FolderScreen> {
             : null,
         actions: _selectionMode
             ? [
+                IconButton(
+                  icon: const Icon(Icons.merge_type),
+                  tooltip: s.t('mergeToOnePdf'),
+                  onPressed: _selectedIds.length >= 2 ? () => _mergeSelectedToPdf(documents) : null,
+                ),
                 IconButton(icon: const Icon(Icons.drive_file_move_outline), onPressed: () => _moveOrCopySelected(move: true)),
                 IconButton(icon: const Icon(Icons.copy_outlined), onPressed: () => _moveOrCopySelected(move: false)),
                 IconButton(icon: const Icon(Icons.delete_outline), onPressed: _deleteSelected),

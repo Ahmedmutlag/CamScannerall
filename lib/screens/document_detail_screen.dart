@@ -11,6 +11,7 @@ import '../theme/app_colors.dart';
 import '../widgets/full_page_preview.dart';
 import 'camera_screen.dart';
 import 'ocr_screen.dart';
+import 'page_crop_screen.dart';
 
 class DocumentDetailScreen extends StatefulWidget {
   const DocumentDetailScreen({super.key, required this.document});
@@ -271,12 +272,54 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                       GestureDetector(
                         onTap: () => _openPreview(pages, index),
                         child: Container(
+                          width: 110,
+                          height: 150,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: colors.divider),
                           ),
                           clipBehavior: Clip.antiAlias,
-                          child: Image.file(File(page.imagePathLowRes), width: 110, height: 150, fit: BoxFit.cover),
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: Image.file(File(page.imagePathLowRes), width: 110, fit: BoxFit.cover),
+                              ),
+                              ColoredBox(
+                                color: Colors.black54,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _pageToolButton(
+                                      icon: Icons.rotate_right,
+                                      tooltip: s.t('rotatePage'),
+                                      onTap: () async {
+                                        await appState.rotatePage(doc, page);
+                                        setState(() {});
+                                      },
+                                    ),
+                                    _pageToolButton(
+                                      icon: Icons.crop,
+                                      tooltip: s.t('cropPage'),
+                                      onTap: () async {
+                                        await Navigator.of(context).push(MaterialPageRoute(
+                                          builder: (_) => PageCropScreen(document: doc, page: page),
+                                        ));
+                                        setState(() {});
+                                      },
+                                    ),
+                                    _pageToolButton(
+                                      icon: Icons.copy_all_outlined,
+                                      tooltip: s.t('duplicatePage'),
+                                      onTap: () async {
+                                        await appState.duplicatePage(doc, page);
+                                        setState(() {});
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       Positioned(
@@ -342,6 +385,19 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
         avatar: Icon(icon, size: 18, color: AppColors.of(context).primaryInk),
         label: Text(label),
         onPressed: onTap,
+      ),
+    );
+  }
+
+  Widget _pageToolButton({required IconData icon, required String tooltip, required VoidCallback onTap}) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Icon(icon, size: 16, color: Colors.white),
+        ),
       ),
     );
   }

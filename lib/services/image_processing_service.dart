@@ -63,6 +63,92 @@ class ImageProcessingService {
     await File(highResPath).writeAsBytes(result['high'] as Uint8List);
     await File(lowResPath).writeAsBytes(result['low'] as Uint8List);
   }
+
+  /// Rotates an already-saved page by [quarterTurns] * 90° clockwise,
+  /// rewriting both the high-res file and its low-res thumbnail in place.
+  Future<void> rotateSavedPage({
+    required String highResPath,
+    required String lowResPath,
+    int quarterTurns = 1,
+  }) async {
+    final result = await compute(_rotateIsolate, {
+      'highResPath': highResPath,
+      'degrees': (quarterTurns % 4) * 90,
+    });
+    await File(highResPath).writeAsBytes(result['high'] as Uint8List);
+    await File(lowResPath).writeAsBytes(result['low'] as Uint8List);
+  }
+
+  /// Trims an already-saved page down to [rect] (fractions of the image's
+  /// width/height, 0..1) — a manual touch-up for when the scanner's own
+  /// automatic crop left in a margin or a bit of the surface underneath.
+  Future<void> cropSavedPage({
+    required String highResPath,
+    required String lowResPath,
+    required Rect rect,
+  }) async {
+    final result = await compute(_cropIsolate, {
+      'highResPath': highResPath,
+      'left': rect.left,
+      'top': rect.top,
+      'width': rect.width,
+      'height': rect.height,
+    });
+    await File(highResPath).writeAsBytes(result['high'] as Uint8List);
+    await File(lowResPath).writeAsBytes(result['low'] as Uint8List);
+  }
+}
+
+Map<String, Uint8List> _rotateIsolate(Map<String, dynamic> params) {
+  final highResPath = params['highResPath'] as String;
+  final degrees = params['degrees'] as int;
+
+  var image = img.decodeImage(File(highResPath).readAsBytesSync());
+  if (image == null) throw Exception('Could not decode image at $highResPath');
+  if (degrees != 0) {
+    image = img.copyRotate(image, angle: degrees);
+  }
+  return _encodeHighAndLow(image);
+}
+
+Map<String, Uint8List> _cropIsolate(Map<String, dynamic> params) {
+  final highResPath = params['highResPath'] as String;
+  final left = params['left'] as double;
+  final top = params['top'] as double;
+  final width = params['width'] as double;
+  final height = params['height'] as double;
+
+  final image = img.decodeImage(File(highResPath).readAsBytesSync());
+  if (image == null) throw Exception('Could not decode image at $highResPath');
+
+  final cropped = img.copyCrop(
+    image,
+    x: (left * image.width).round().clamp(0, image.width - 1),
+    y: (top * image.height).round().clamp(0, image.height - 1),
+    width: (width * image.width).round().clamp(1, image.width),
+    height: (height * image.height).round().clamp(1, image.height),
+  );
+  return _encodeHighAndLow(cropped);
+}
+
+Map<String, Uint8List> _encodeHighAndLow(img.Image image) {
+  final highJpg = img.encodeJpg(image, quality: 92);
+
+  final lowScale = ImageProcessingService.lowResMaxDimension /
+      (image.width > image.height ? image.width : image.height);
+  final lowImage = lowScale < 1.0
+      ? img.copyResize(
+          image,
+          width: (image.width * lowScale).round(),
+          height: (image.height * lowScale).round(),
+        )
+      : image;
+  final lowJpg = img.encodeJpg(lowImage, quality: 55);
+
+  return {
+    'high': Uint8List.fromList(highJpg),
+    'low': Uint8List.fromList(lowJpg),
+  };
 }
 
 Map<String, Uint8List> _processImageIsolate(Map<String, dynamic> params) {
@@ -112,24 +198,12 @@ Map<String, Uint8List> _processImageIsolate(Map<String, dynamic> params) {
 
   image = _applyFilter(image, filter);
 
-  final highJpg = img.encodeJpg(image, quality: 92);
-
-  final lowScale = ImageProcessingService.lowResMaxDimension /
-      (image.width > image.height ? image.width : image.height);
-  final lowImage = lowScale < 1.0
-      ? img.copyResize(
-          image,
-          width: (image.width * lowScale).round(),
-          height: (image.height * lowScale).round(),
-        )
-      : image;
-  final lowJpg = img.encodeJpg(lowImage, quality: 55);
-
-  return {
-    'high': Uint8List.fromList(highJpg),
-    'low': Uint8List.fromList(lowJpg),
-  };
+  return _encodeHighAndLow(image);
 }
+
+/// A light sharpening kernel — cheap to run, and makes scanned text noticeably
+/// crisper without the halo artifacts a stronger unsharp mask would add.
+const _sharpenKernel = [0, -1, 0, -1, 5, -1, 0, -1, 0];
 
 img.Image _applyFilter(img.Image image, ScanFilter filter) {
   switch (filter) {
@@ -138,12 +212,19 @@ img.Image _applyFilter(img.Image image, ScanFilter filter) {
     case ScanFilter.color:
       return img.adjustColor(image, contrast: 1.08, saturation: 1.1, brightness: 1.02);
     case ScanFilter.blackAndWhite:
-      final gray = img.grayscale(image);
+      // Normalizing first (per-image contrast stretch) makes the fixed
+      // threshold below hold up across uneven lighting/shadows, instead of
+      // only working well on already well-lit photos.
+      final normalized = img.normalize(image, min: 0, max: 255);
+      final gray = img.grayscale(normalized);
       return img.luminanceThreshold(gray, threshold: 0.56);
     case ScanFilter.auto:
-      // Boost contrast and brightness to fade shadows/backgrounds while
-      // keeping the image readable in color — a reasonable on-device
-      // approximation of "clean background & remove shadow".
-      return img.adjustColor(image, contrast: 1.25, brightness: 1.08, saturation: 0.95);
+      // Adaptive per-image contrast stretch (handles a shadowed corner or a
+      // dim photo far better than a fixed brightness/contrast bump would),
+      // a small color touch-up, then a light sharpen for crisper text —
+      // closer to what a dedicated scanner app's "enhance" mode does.
+      final normalized = img.normalize(image, min: 0, max: 255);
+      final adjusted = img.adjustColor(normalized, contrast: 1.08, brightness: 1.04, saturation: 0.97);
+      return img.convolution(adjusted, filter: _sharpenKernel);
   }
 }

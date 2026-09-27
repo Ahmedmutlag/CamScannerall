@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:printing/printing.dart';
@@ -279,6 +280,64 @@ class AppState extends ChangeNotifier {
     doc.pages = pages;
     await doc.save();
     notifyListeners();
+  }
+
+  /// Rotates a single saved page 90° clockwise (professional touch-up:
+  /// the scanner sometimes gets a page's orientation wrong and there was
+  /// previously no way to fix just one page after the fact).
+  Future<void> rotatePage(Document doc, DocPage page) async {
+    await imageProcessing.rotateSavedPage(
+      highResPath: page.imagePathHighRes,
+      lowResPath: page.imagePathLowRes,
+    );
+    notifyListeners();
+  }
+
+  /// Trims a single saved page to [rect] (fractions 0..1 of its own
+  /// width/height) — a manual fix for when the scanner's automatic crop
+  /// left in a margin or part of the surface underneath.
+  Future<void> cropPage(Document doc, DocPage page, Rect rect) async {
+    await imageProcessing.cropSavedPage(
+      highResPath: page.imagePathHighRes,
+      lowResPath: page.imagePathLowRes,
+      rect: rect,
+    );
+    notifyListeners();
+  }
+
+  /// Duplicates a single page in place, right after the original — for
+  /// when a page needs two independent copies to edit differently (e.g.
+  /// keep one as-is and crop/rotate the other).
+  Future<void> duplicatePage(Document doc, DocPage page) async {
+    final newId = const Uuid().v4();
+    final newHighRes = page.imagePathHighRes.replaceFirst(RegExp(r'([^/]+)$'), '${newId}_hi.jpg');
+    final newLowRes = page.imagePathLowRes.replaceFirst(RegExp(r'([^/]+)$'), '${newId}_lo.jpg');
+    await File(page.imagePathHighRes).copy(newHighRes);
+    await File(page.imagePathLowRes).copy(newLowRes);
+
+    final pages = List<DocPage>.from(doc.pages)..sort((a, b) => a.order.compareTo(b.order));
+    final insertAt = pages.indexOf(page) + 1;
+    pages.insert(insertAt, DocPage(
+      id: newId,
+      documentId: doc.id,
+      imagePathHighRes: newHighRes,
+      imagePathLowRes: newLowRes,
+      order: 0,
+    ));
+    for (var i = 0; i < pages.length; i++) {
+      pages[i].order = i;
+    }
+    doc.pages = pages;
+    await doc.save();
+    notifyListeners();
+  }
+
+  /// Combines the pages of several existing documents into a single PDF —
+  /// a "professional" merge tool distinct from the per-folder ZIP export,
+  /// which keeps documents as separate files.
+  Future<Uint8List> mergeDocumentsToPdf(List<Document> docs) {
+    final paths = docs.expand((d) => d.pages.map((p) => p.imagePathHighRes)).toList();
+    return pdf.buildPdf(paths);
   }
 
   /// Appends freshly captured pages to an existing [doc] (re-running OCR
