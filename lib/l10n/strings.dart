@@ -220,6 +220,14 @@ class AppStrings {
       'ar': 'سيُحذف كل مجلد محدد وجميع المستندات بداخله نهائياً ولا يمكن التراجع عن هذا الإجراء.',
       'en': 'Each selected folder and all documents inside it will be permanently deleted. This cannot be undone.',
     },
+
+    // Exit-with-unsaved-data warning (Print Documents section)
+    'exitWithUnsavedTitle': {'ar': 'صور غير محفوظة', 'en': 'Unsaved scans'},
+    'exitWithUnsavedBody': {
+      'ar': 'لديك مستندات مصوّرة بقسم "طباعة المستمسكات" لم تُحفظ بعد. الخروج الآن سيحذفها نهائياً، لأن هذا القسم لا يحفظ أي بيانات تلقائياً.',
+      'en': "You have scanned documents in Print Documents that haven't been saved yet. Exiting now will permanently delete them, since this section never saves data automatically.",
+    },
+    'exitAnyway': {'ar': 'خروج على أي حال', 'en': 'Exit anyway'},
   };
 
   String t(String key) => _table[key]?[languageCode] ?? _table[key]?['en'] ?? key;

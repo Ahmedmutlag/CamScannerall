@@ -84,7 +84,13 @@ class _Person {
 /// screen exists to process other people's sensitive IDs one customer at a
 /// time, not to build an archive of them.
 class PrintDocumentsScreen extends StatefulWidget {
-  const PrintDocumentsScreen({super.key});
+  const PrintDocumentsScreen({super.key, this.hasUnsavedData});
+
+  /// Kept in sync with whether any person here has at least one scanned
+  /// slot — [RootShell] watches this to warn before letting the app exit
+  /// (via the system back button) and silently discard everything, since
+  /// this section deliberately never saves anything on its own.
+  final ValueNotifier<bool>? hasUnsavedData;
 
   @override
   State<PrintDocumentsScreen> createState() => _PrintDocumentsScreenState();
@@ -96,6 +102,10 @@ class _PrintDocumentsScreenState extends State<PrintDocumentsScreen> {
   bool _busy = false;
 
   static const _maxPeople = 4;
+
+  void _syncUnsavedFlag() {
+    widget.hasUnsavedData?.value = _people.any((p) => p.slotPaths.isNotEmpty);
+  }
 
   Future<void> _scanSlot(IdSlot slot) async {
     setState(() => _busy = true);
@@ -118,6 +128,7 @@ class _PrintDocumentsScreenState extends State<PrintDocumentsScreen> {
       final previous = _people[_activePerson].slotPaths[slot];
       if (previous != null) await _deleteQuietly(previous);
       _people[_activePerson].slotPaths[slot] = highRes;
+      _syncUnsavedFlag();
     } on CunningDocumentScannerException catch (e) {
       if (!mounted) return;
       final message = e.code == 'permission_denied'
@@ -210,6 +221,7 @@ class _PrintDocumentsScreenState extends State<PrintDocumentsScreen> {
         ..add(_Person());
       _activePerson = 0;
     });
+    _syncUnsavedFlag();
   }
 
   void _addPerson() {
@@ -229,6 +241,7 @@ class _PrintDocumentsScreenState extends State<PrintDocumentsScreen> {
         _deleteQuietly(path);
       }
     }
+    widget.hasUnsavedData?.value = false;
     super.dispose();
   }
 
