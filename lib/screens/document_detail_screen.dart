@@ -8,6 +8,7 @@ import '../models/doc_page.dart';
 import '../models/document.dart';
 import '../models/folder.dart';
 import '../theme/app_colors.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/error_dialogs.dart';
 import '../widgets/full_page_preview.dart';
 import 'camera_screen.dart';
@@ -58,22 +59,41 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
 
   Future<void> _delete() async {
     final appState = context.read<AppState>();
+    final s = appState.strings;
+    final confirmed = await confirmDelete(
+      context,
+      title: s.t('deleteDocumentTitle'),
+      message: s.t('deleteDocumentBody'),
+      cancelLabel: s.t('cancel'),
+      deleteLabel: s.t('delete'),
+    );
+    if (!confirmed || !mounted) return;
     await appState.deleteDocument(doc);
     if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _openPreview(List<DocPage> pages, int initialIndex) async {
     final appState = context.read<AppState>();
+    final s = appState.strings;
     final removedIndex = await Navigator.of(context).push<int>(
       MaterialPageRoute(
         builder: (_) => FullPagePreview(
           paths: pages.map((p) => p.imagePathHighRes).toList(),
           initialIndex: initialIndex,
+          deleteTooltip: s.t('delete'),
         ),
         fullscreenDialog: true,
       ),
     );
     if (removedIndex == null || !mounted) return;
+    final confirmed = await confirmDelete(
+      context,
+      title: s.t('deletePageTitle'),
+      message: s.t('deletePageBody'),
+      cancelLabel: s.t('cancel'),
+      deleteLabel: s.t('delete'),
+    );
+    if (!confirmed || !mounted) return;
     await appState.deletePage(doc, pages[removedIndex]);
     setState(() {});
   }
@@ -309,7 +329,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       appBar: AppBar(
         title: GestureDetector(onTap: _rename, child: Text(doc.name)),
         actions: [
-          IconButton(icon: const Icon(Icons.delete_outline), onPressed: _delete),
+          IconButton(icon: const Icon(Icons.delete_outline), tooltip: s.t('delete'), onPressed: _delete),
         ],
       ),
       body: ListView(
@@ -400,13 +420,24 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                         right: 2,
                         child: InkWell(
                           onTap: () async {
+                            final confirmed = await confirmDelete(
+                              context,
+                              title: s.t('deletePageTitle'),
+                              message: s.t('deletePageBody'),
+                              cancelLabel: s.t('cancel'),
+                              deleteLabel: s.t('delete'),
+                            );
+                            if (!confirmed || !context.mounted) return;
                             await appState.deletePage(doc, page);
-                            setState(() {});
+                            if (mounted) setState(() {});
                           },
-                          child: const CircleAvatar(
-                            radius: 12,
-                            backgroundColor: Colors.black54,
-                            child: Icon(Icons.close, size: 14, color: Colors.white),
+                          child: Tooltip(
+                            message: s.t('delete'),
+                            child: const CircleAvatar(
+                              radius: 12,
+                              backgroundColor: Colors.black54,
+                              child: Icon(Icons.close, size: 14, color: Colors.white),
+                            ),
                           ),
                         ),
                       ),

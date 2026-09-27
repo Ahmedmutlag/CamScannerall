@@ -57,6 +57,7 @@ class _OcrScreenState extends State<OcrScreen> {
             icon: _busy
                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.refresh),
+            tooltip: s.t('extractText'),
             onPressed: _busy ? null : _reextract,
           ),
         ],

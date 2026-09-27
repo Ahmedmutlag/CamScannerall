@@ -83,6 +83,7 @@ class _PageCropScreenState extends State<PageCropScreen> {
             icon: _saving
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.check),
+            tooltip: s.t('save'),
             onPressed: _saving ? null : _save,
           ),
         ],

@@ -178,6 +178,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ? TextButton(onPressed: _chooseAutoBackupFolder, child: Text(s.t('chooseFolder')))
                       : IconButton(
                           icon: const Icon(Icons.close),
+                          tooltip: s.t('remove'),
                           onPressed: () async {
                             await appState.backup.setAutoBackupFolder(null);
                             setState(() {});

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../models/folder.dart';
 import '../theme/app_colors.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/empty_state_view.dart';
 import '../widgets/folder_card.dart';
 import 'folder_screen.dart';
@@ -86,6 +87,15 @@ class _FilesScreenState extends State<FilesScreen> {
 
   Future<void> _deleteSelected() async {
     final appState = context.read<AppState>();
+    final s = appState.strings;
+    final confirmed = await confirmDelete(
+      context,
+      title: s.t('deleteFoldersTitle'),
+      message: s.t('deleteFoldersBody'),
+      cancelLabel: s.t('cancel'),
+      deleteLabel: s.t('delete'),
+    );
+    if (!confirmed || !mounted) return;
     for (final id in _selectedFolderIds) {
       final folder = appState.db.folderById(id);
       if (folder != null) await appState.deleteFolder(folder);
@@ -117,6 +127,7 @@ class _FilesScreenState extends State<FilesScreen> {
         leading: _selectionMode
             ? IconButton(
                 icon: const Icon(Icons.close),
+                tooltip: s.t('cancel'),
                 onPressed: () => setState(() {
                   _selectionMode = false;
                   _selectedFolderIds.clear();
@@ -127,17 +138,24 @@ class _FilesScreenState extends State<FilesScreen> {
             ? [
                 IconButton(
                   icon: const Icon(Icons.merge_type),
+                  tooltip: s.t('merge'),
                   onPressed: _selectedFolderIds.length >= 2 ? _mergeSelected : null,
                 ),
-                IconButton(icon: const Icon(Icons.delete_outline), onPressed: _deleteSelected),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: s.t('delete'),
+                  onPressed: _deleteSelected,
+                ),
               ]
             : [
                 IconButton(
                   icon: Icon(isGrid ? Icons.view_list : Icons.grid_view),
+                  tooltip: isGrid ? s.t('list') : s.t('grid'),
                   onPressed: () => appState.setViewMode(isGrid ? 'list' : 'grid'),
                 ),
                 IconButton(
                   icon: const Icon(Icons.checklist),
+                  tooltip: s.t('selectMode'),
                   onPressed: folders.isEmpty ? null : () => setState(() => _selectionMode = true),
                 ),
               ],

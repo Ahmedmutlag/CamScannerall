@@ -165,6 +165,7 @@ class AppStrings {
     'no': {'ar': 'لا', 'en': 'No'},
     'ok': {'ar': 'موافق', 'en': 'OK'},
     'retry': {'ar': 'إعادة المحاولة', 'en': 'Retry'},
+    'remove': {'ar': 'إزالة', 'en': 'Remove'},
 
     // Error dialogs / messages
     'scannerErrorTitle': {'ar': 'تعذر تشغيل الماسح', 'en': 'Scanner unavailable'},
@@ -196,6 +197,28 @@ class AppStrings {
     'ocrExtractError': {
       'ar': 'تعذّر استخراج النص من الصفحات.',
       'en': 'Could not extract text from the pages.',
+    },
+
+    // Delete confirmations
+    'deleteDocumentTitle': {'ar': 'حذف المستند؟', 'en': 'Delete document?'},
+    'deleteDocumentBody': {
+      'ar': 'سيُحذف هذا المستند وكل صفحاته نهائياً ولا يمكن التراجع عن هذا الإجراء.',
+      'en': 'This document and all its pages will be permanently deleted. This cannot be undone.',
+    },
+    'deletePageTitle': {'ar': 'حذف الصفحة؟', 'en': 'Delete page?'},
+    'deletePageBody': {
+      'ar': 'ستُحذف هذه الصفحة نهائياً ولا يمكن التراجع عن هذا الإجراء.',
+      'en': 'This page will be permanently deleted. This cannot be undone.',
+    },
+    'deleteDocumentsTitle': {'ar': 'حذف المستندات المحددة؟', 'en': 'Delete selected documents?'},
+    'deleteDocumentsBody': {
+      'ar': 'ستُحذف المستندات المحددة نهائياً ولا يمكن التراجع عن هذا الإجراء.',
+      'en': 'The selected documents will be permanently deleted. This cannot be undone.',
+    },
+    'deleteFoldersTitle': {'ar': 'حذف المجلدات المحددة؟', 'en': 'Delete selected folders?'},
+    'deleteFoldersBody': {
+      'ar': 'سيُحذف كل مجلد محدد وجميع المستندات بداخله نهائياً ولا يمكن التراجع عن هذا الإجراء.',
+      'en': 'Each selected folder and all documents inside it will be permanently deleted. This cannot be undone.',
     },
   };
 

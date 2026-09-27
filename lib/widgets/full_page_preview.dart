@@ -7,10 +7,19 @@ import 'package:flutter/material.dart';
 /// (before a document is even saved) and the document detail screen (after
 /// it's saved) — in both places, tapping a thumbnail previously did nothing.
 class FullPagePreview extends StatefulWidget {
-  const FullPagePreview({super.key, required this.paths, required this.initialIndex});
+  const FullPagePreview({
+    super.key,
+    required this.paths,
+    required this.initialIndex,
+    this.deleteTooltip,
+  });
 
   final List<String> paths;
   final int initialIndex;
+
+  /// Localized label for the delete action — optional since this widget
+  /// has no access to [AppStrings] itself and the caller may skip it.
+  final String? deleteTooltip;
 
   @override
   State<FullPagePreview> createState() => _FullPagePreviewState();
@@ -37,6 +46,7 @@ class _FullPagePreviewState extends State<FullPagePreview> {
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
+            tooltip: widget.deleteTooltip,
             onPressed: () => Navigator.of(context).pop(_currentIndex),
           ),
         ],

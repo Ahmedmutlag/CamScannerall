@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../models/document.dart';
 import '../theme/app_colors.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/empty_state_view.dart';
 import '../widgets/error_dialogs.dart';
 import '../widgets/full_page_preview.dart';
@@ -117,6 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _quickView(Document doc) async {
     final appState = context.read<AppState>();
+    final s = appState.strings;
     final sorted = List.of(doc.pages)
       ..sort((a, b) => a.order.compareTo(b.order));
     final removedIndex = await Navigator.of(context).push<int>(
@@ -124,13 +126,20 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => FullPagePreview(
           paths: sorted.map((p) => p.imagePathHighRes).toList(),
           initialIndex: 0,
+          deleteTooltip: s.t('delete'),
         ),
         fullscreenDialog: true,
       ),
     );
-    if (removedIndex != null) {
-      await appState.deletePage(doc, sorted[removedIndex]);
-    }
+    if (removedIndex == null || !mounted) return;
+    final confirmed = await confirmDelete(
+      context,
+      title: s.t('deletePageTitle'),
+      message: s.t('deletePageBody'),
+      cancelLabel: s.t('cancel'),
+      deleteLabel: s.t('delete'),
+    );
+    if (confirmed) await appState.deletePage(doc, sorted[removedIndex]);
   }
 
   Future<void> _shareAsPdf(Document doc) async {

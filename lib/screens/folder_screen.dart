@@ -7,6 +7,7 @@ import '../app_state.dart';
 import '../models/document.dart';
 import '../models/folder.dart';
 import '../theme/app_colors.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/document_card.dart';
 import '../widgets/empty_state_view.dart';
 import '../widgets/error_dialogs.dart';
@@ -79,6 +80,15 @@ class _FolderScreenState extends State<FolderScreen> {
 
   Future<void> _deleteSelected() async {
     final appState = context.read<AppState>();
+    final s = appState.strings;
+    final confirmed = await confirmDelete(
+      context,
+      title: s.t('deleteDocumentsTitle'),
+      message: s.t('deleteDocumentsBody'),
+      cancelLabel: s.t('cancel'),
+      deleteLabel: s.t('delete'),
+    );
+    if (!confirmed || !mounted) return;
     for (final id in _selectedIds) {
       final doc = appState.db.documentById(id);
       if (doc != null) await appState.deleteDocument(doc);
@@ -191,6 +201,7 @@ class _FolderScreenState extends State<FolderScreen> {
         leading: _selectionMode
             ? IconButton(
                 icon: const Icon(Icons.close),
+                tooltip: s.t('cancel'),
                 onPressed: () => setState(() {
                   _selectionMode = false;
                   _selectedIds.clear();
@@ -204,9 +215,21 @@ class _FolderScreenState extends State<FolderScreen> {
                   tooltip: s.t('mergeToOnePdf'),
                   onPressed: _selectedIds.length >= 2 ? () => _mergeSelectedToPdf(documents) : null,
                 ),
-                IconButton(icon: const Icon(Icons.drive_file_move_outline), onPressed: () => _moveOrCopySelected(move: true)),
-                IconButton(icon: const Icon(Icons.copy_outlined), onPressed: () => _moveOrCopySelected(move: false)),
-                IconButton(icon: const Icon(Icons.delete_outline), onPressed: _deleteSelected),
+                IconButton(
+                  icon: const Icon(Icons.drive_file_move_outline),
+                  tooltip: s.t('move'),
+                  onPressed: () => _moveOrCopySelected(move: true),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.copy_outlined),
+                  tooltip: s.t('copy'),
+                  onPressed: () => _moveOrCopySelected(move: false),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: s.t('delete'),
+                  onPressed: _deleteSelected,
+                ),
               ]
             : [
                 PopupMenuButton<String>(

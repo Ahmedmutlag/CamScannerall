@@ -141,9 +141,14 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> _openFullPreview(int initialIndex) async {
+    final s = context.read<AppState>().strings;
     final removedIndex = await Navigator.of(context).push<int>(
       MaterialPageRoute(
-        builder: (_) => FullPagePreview(paths: _scannedPaths, initialIndex: initialIndex),
+        builder: (_) => FullPagePreview(
+          paths: _scannedPaths,
+          initialIndex: initialIndex,
+          deleteTooltip: s.t('delete'),
+        ),
         fullscreenDialog: true,
       ),
     );
@@ -204,6 +209,7 @@ class _CameraScreenState extends State<CameraScreen> {
             title: Text('${s.t('documentDetails')} (${_scannedPaths.length})'),
             leading: IconButton(
               icon: const Icon(Icons.close),
+              tooltip: s.t('cancel'),
               onPressed: () => Navigator.of(context).pop(<({String highRes, String lowRes})>[]),
             ),
           ),
@@ -237,10 +243,13 @@ class _CameraScreenState extends State<CameraScreen> {
                               right: 2,
                               child: InkWell(
                                 onTap: () => _removePage(index),
-                                child: const CircleAvatar(
-                                  radius: 12,
-                                  backgroundColor: Colors.black54,
-                                  child: Icon(Icons.close, size: 14, color: Colors.white),
+                                child: Tooltip(
+                                  message: s.t('delete'),
+                                  child: const CircleAvatar(
+                                    radius: 12,
+                                    backgroundColor: Colors.black54,
+                                    child: Icon(Icons.close, size: 14, color: Colors.white),
+                                  ),
                                 ),
                               ),
                             ),
