@@ -81,7 +81,11 @@ class AppColors extends ThemeExtension<AppColors> {
   AppColors lerp(ThemeExtension<AppColors>? other, double t) {
     if (other is! AppColors) return this;
     return AppColors(
-      backgroundPrimary: Color.lerp(backgroundPrimary, other.backgroundPrimary, t)!,
+      backgroundPrimary: Color.lerp(
+        backgroundPrimary,
+        other.backgroundPrimary,
+        t,
+      )!,
       primaryInk: Color.lerp(primaryInk, other.primaryInk, t)!,
       accentBrass: Color.lerp(accentBrass, other.accentBrass, t)!,
       accentScan: Color.lerp(accentScan, other.accentScan, t)!,
@@ -109,4 +113,48 @@ class AppRadius {
   AppRadius._();
   static const double value = 8;
   static const BorderRadius radius = BorderRadius.all(Radius.circular(value));
+
+  /// The softer, more rounded radius used by colorful pastel cards
+  /// (Home tools, Print Documents slots, folder/document cards) — see
+  /// [PastelPalette].
+  static const double cardValue = 16;
+  static const BorderRadius cardRadius = BorderRadius.all(
+    Radius.circular(cardValue),
+  );
+}
+
+/// A fixed set of pastel background/icon-color pairs, used for the
+/// colorful rounded-card look (folders, documents, home tools, print
+/// slots) introduced after Ahmed shared a reference design. Each card
+/// picks a color deterministically from an id/name so it stays the same
+/// color across rebuilds without needing to store a color explicitly.
+class PastelPalette {
+  PastelPalette._();
+
+  static const List<(Color background, Color foreground)> _pairs = [
+    (Color(0xFFDCEEFB), Color(0xFF1976D2)),
+    (Color(0xFFDCF5F0), Color(0xFF0E9384)),
+    (Color(0xFFFFF1D6), Color(0xFFB8860B)),
+    (Color(0xFFEFE0FB), Color(0xFF8E24AA)),
+    (Color(0xFFFBDDE7), Color(0xFFD81B60)),
+    (Color(0xFFFCE8D6), Color(0xFFE65100)),
+  ];
+
+  static (Color background, Color foreground) forSeed(String seed) {
+    final index = seed.isEmpty
+        ? 0
+        : seed.codeUnits.fold<int>(0, (a, b) => a + b) % _pairs.length;
+    return _pairs[index];
+  }
+
+  /// The soft drop shadow every pastel card shares, giving them the
+  /// slightly raised, glossy look from the reference — a deliberate
+  /// departure from the earlier flat/hairline-only card style.
+  static List<BoxShadow> shadow = [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.08),
+      blurRadius: 12,
+      offset: const Offset(0, 4),
+    ),
+  ];
 }

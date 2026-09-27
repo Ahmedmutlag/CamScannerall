@@ -68,9 +68,12 @@ class AppTheme {
         centerTitle: false,
         titleTextStyle: textTheme.titleLarge,
       ),
-      // Cards are the exception, not the rule (design-spec.md §1) — no
-      // shadow, just a hairline border, reserved for the rare permitted
-      // case (e.g. a single onboarding welcome card).
+      // The generic Material Card widget itself is barely used — the
+      // colorful pastel cards (Home tools, Print Documents slots, folder/
+      // document tiles) build their own Container+Material+shadow directly
+      // via [PastelPalette] instead of this theme, so custom colors per
+      // card are possible. This stays as a plain flat fallback for any
+      // plain Card usage.
       cardTheme: CardThemeData(
         elevation: 0,
         color: colors.backgroundPrimary,

@@ -38,14 +38,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _scan() async {
-    final result = await Navigator.of(context).push<List<({String highRes, String lowRes})>>(
-      MaterialPageRoute(builder: (_) => const CameraScreen()),
-    );
+    final result = await Navigator.of(context)
+        .push<List<({String highRes, String lowRes})>>(
+          MaterialPageRoute(builder: (_) => const CameraScreen()),
+        );
     if (result == null || result.isEmpty || !mounted) return;
 
     final appState = context.read<AppState>();
     final s = appState.strings;
-    final (doc, duplicate) = await appState.createDocumentFromPages(pages: result);
+    final (doc, duplicate) = await appState.createDocumentFromPages(
+      pages: result,
+    );
 
     if (duplicate != null && mounted) {
       await showDialog<void>(
@@ -53,12 +56,19 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context) => AlertDialog(
           title: Text(s.t('duplicateFound')),
           content: Text('${s.t('duplicateBody')}\n\n"${duplicate.name}"'),
-          actions: [FilledButton(onPressed: () => Navigator.pop(context), child: Text(s.t('ok')))],
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(s.t('ok')),
+            ),
+          ],
         ),
       );
     }
     if (mounted) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: doc)));
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: doc)),
+      );
     }
   }
 
@@ -77,7 +87,11 @@ class _HomeScreenState extends State<HomeScreen> {
       final pages = ext == 'pdf' ? await appState.rasterizePdf(bytes) : [bytes];
       final (doc, _) = await appState.importPages(pageBytesList: pages);
       if (mounted) {
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: doc)));
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => DocumentDetailScreen(document: doc),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -86,7 +100,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _quickView(Document doc) async {
     final appState = context.read<AppState>();
-    final sorted = List.of(doc.pages)..sort((a, b) => a.order.compareTo(b.order));
+    final sorted = List.of(doc.pages)
+      ..sort((a, b) => a.order.compareTo(b.order));
     final removedIndex = await Navigator.of(context).push<int>(
       MaterialPageRoute(
         builder: (_) => FullPagePreview(
@@ -96,19 +111,28 @@ class _HomeScreenState extends State<HomeScreen> {
         fullscreenDialog: true,
       ),
     );
-    if (removedIndex != null) await appState.deletePage(doc, sorted[removedIndex]);
+    if (removedIndex != null) {
+      await appState.deletePage(doc, sorted[removedIndex]);
+    }
   }
 
   Future<void> _shareAsPdf(Document doc) async {
     final appState = context.read<AppState>();
-    final bytes = await appState.pdf.buildPdf(doc.pages.map((p) => p.imagePathHighRes).toList());
+    final bytes = await appState.pdf.buildPdf(
+      doc.pages.map((p) => p.imagePathHighRes).toList(),
+    );
     await appState.pdf.sharePdf(bytes, filename: '${doc.name}.pdf');
   }
 
   Future<void> _toWord(Document doc) async {
     final appState = context.read<AppState>();
-    final pagesText = doc.extractedText.isEmpty ? [''] : doc.extractedText.split('\n\n');
-    final bytes = appState.docx.buildDocx(title: doc.name, pagesText: pagesText);
+    final pagesText = doc.extractedText.isEmpty
+        ? ['']
+        : doc.extractedText.split('\n\n');
+    final bytes = appState.docx.buildDocx(
+      title: doc.name,
+      pagesText: pagesText,
+    );
     await appState.share.shareBytes(
       bytes,
       '${doc.name}.docx',
@@ -123,7 +147,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final colors = AppColors.of(context);
 
     final searching = _query.trim().isNotEmpty;
-    final results = searching ? appState.db.search(_query) : appState.db.recentActivity;
+    final results = searching
+        ? appState.db.search(_query)
+        : appState.db.recentActivity;
 
     return Scaffold(
       appBar: AppBar(
@@ -132,12 +158,15 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.folder_outlined),
             tooltip: s.t('files'),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FilesScreen())),
+            onPressed: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const FilesScreen())),
           ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: s.t('settings'),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
           ),
         ],
       ),
@@ -146,7 +175,12 @@ class _HomeScreenState extends State<HomeScreen> {
           : Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                  ),
                   child: TextField(
                     controller: _searchController,
                     onChanged: (v) => setState(() => _query = v),
@@ -158,7 +192,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 if (!searching)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                    ),
                     child: Row(
                       children: [
                         Expanded(
@@ -190,19 +226,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: AppSpacing.sm),
                 if (!searching)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.xs),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      0,
+                      AppSpacing.md,
+                      AppSpacing.xs,
+                    ),
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
-                      child: Text(s.t('recent'), style: Theme.of(context).textTheme.titleSmall),
+                      child: Text(
+                        s.t('recent'),
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
                     ),
                   ),
                 Expanded(
                   child: results.isEmpty
-                      ? EmptyStateView(message: searching ? s.t('noSearchResults') : s.t('noRecent'))
+                      ? EmptyStateView(
+                          message: searching
+                              ? s.t('noSearchResults')
+                              : s.t('noRecent'),
+                        )
                       : ListView.separated(
                           itemCount: results.length,
-                          separatorBuilder: (_, _) =>
-                              Divider(color: colors.divider, height: 1, indent: AppSpacing.md, endIndent: AppSpacing.md),
+                          separatorBuilder: (_, _) => Divider(
+                            color: colors.divider,
+                            height: 1,
+                            indent: AppSpacing.md,
+                            endIndent: AppSpacing.md,
+                          ),
                           itemBuilder: (context, index) {
                             final doc = results[index];
                             return RecentDocumentTile(
@@ -210,8 +262,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               viewLabel: s.t('view'),
                               toWordLabel: s.t('wordShort'),
                               shareLabel: s.t('share'),
-                              onTap: () => Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: doc))),
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      DocumentDetailScreen(document: doc),
+                                ),
+                              ),
                               onView: () => _quickView(doc),
                               onToWord: () => _toWord(doc),
                               onShare: () => _shareAsPdf(doc),
@@ -236,33 +292,41 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color foreground,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: background,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.white,
-                child: Icon(icon, color: foreground, size: 22),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: foreground.withValues(alpha: 0.85)),
-              ),
-            ],
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.cardRadius,
+        boxShadow: PastelPalette.shadow,
+      ),
+      child: Material(
+        color: background,
+        borderRadius: AppRadius.cardRadius,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.white,
+                  child: Icon(icon, color: foreground, size: 22),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: foreground.withValues(alpha: 0.85)),
+                ),
+              ],
+            ),
           ),
         ),
       ),

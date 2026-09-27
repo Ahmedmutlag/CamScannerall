@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import '../models/folder.dart';
 import '../theme/app_colors.dart';
 
-/// A single folder row. The default (list) presentation is a plain row
-/// meant to be separated by a hairline [Divider] in the parent list —
-/// per design-spec.md §1/§3, folders/documents are not shown as matching-
-/// shadow cards. Grid mode (an explicit user preference toggle from the
-/// base feature spec) keeps the same flat, borderless language: a thin
-/// outline instead of a filled card.
+/// A single folder tile. Grid mode is a colorful pastel card (deterministic
+/// color per folder, see [PastelPalette]) with a soft shadow; list mode
+/// keeps the same colored icon badge but as a plain row, so a long list
+/// doesn't turn into a wall of heavy cards.
 class FolderCard extends StatelessWidget {
   const FolderCard({
     super.key,
@@ -32,39 +30,72 @@ class FolderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final iconColor = folder.colorTag != null ? Color(folder.colorTag!) : colors.primaryInk;
-    final selectionIcon = selected ? Icons.check_circle : Icons.radio_button_unchecked;
+    final (background, foreground) = folder.colorTag != null
+        ? (
+            Color(folder.colorTag!).withValues(alpha: 0.15),
+            Color(folder.colorTag!),
+          )
+        : PastelPalette.forSeed(folder.id);
+    final selectionIcon = selected
+        ? Icons.check_circle
+        : Icons.radio_button_unchecked;
     final selectionColor = selected ? colors.primaryInk : colors.textSecondary;
 
     if (isGrid) {
-      return InkWell(
-        borderRadius: AppRadius.radius,
-        onTap: onTap,
-        onLongPress: onLongPress,
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.radius,
-            border: Border.all(color: selected ? colors.primaryInk : colors.divider, width: selected ? 1.5 : 1),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.cardRadius,
+          boxShadow: PastelPalette.shadow,
+          border: selected
+              ? Border.all(color: colors.primaryInk, width: 2)
+              : null,
+        ),
+        child: Material(
+          color: background,
+          borderRadius: AppRadius.cardRadius,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            onLongPress: onLongPress,
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.folder_outlined, color: iconColor, size: 30),
-                  if (selectionMode) Icon(selectionIcon, color: selectionColor),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          Icons.folder_outlined,
+                          color: foreground,
+                          size: 20,
+                        ),
+                      ),
+                      if (selectionMode)
+                        Icon(selectionIcon, color: selectionColor),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    folder.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '$documentCount',
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: foreground),
+                  ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(folder.name, maxLines: 2, overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: AppSpacing.xs),
-              Text('$documentCount',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.textSecondary)),
-            ],
+            ),
           ),
         ),
       );
@@ -74,17 +105,30 @@ class FolderCard extends StatelessWidget {
       onTap: onTap,
       onLongPress: onLongPress,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.md),
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.md,
+        ),
         child: Row(
           children: [
-            Icon(Icons.folder_outlined, color: iconColor, size: 26),
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: background,
+              child: Icon(Icons.folder_outlined, color: foreground, size: 20),
+            ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
-              child: Text(folder.name, overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium),
+              child: Text(
+                folder.name,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
-            Text('$documentCount',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.textSecondary)),
+            Text(
+              '$documentCount',
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: colors.textSecondary),
+            ),
             if (selectionMode) ...[
               const SizedBox(width: AppSpacing.sm),
               Icon(selectionIcon, color: selectionColor),

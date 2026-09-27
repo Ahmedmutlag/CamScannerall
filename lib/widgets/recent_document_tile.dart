@@ -36,13 +36,21 @@ class RecentDocumentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final thumbPath = document.pages.isNotEmpty ? document.pages.first.imagePathLowRes : null;
-    final tagColor = document.colorTag != null ? Color(document.colorTag!) : null;
+    final thumbPath = document.pages.isNotEmpty
+        ? document.pages.first.imagePathLowRes
+        : null;
+    final tagColor = document.colorTag != null
+        ? Color(document.colorTag!)
+        : null;
+    final (placeholderBg, placeholderFg) = PastelPalette.forSeed(document.id);
 
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.md),
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.md,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -52,15 +60,17 @@ class RecentDocumentTile extends StatelessWidget {
                   width: 56,
                   height: 72,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: colors.divider),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: thumbPath != null && File(thumbPath).existsSync()
                       ? Image.file(File(thumbPath), fit: BoxFit.cover)
                       : ColoredBox(
-                          color: colors.backgroundPrimary,
-                          child: Icon(Icons.description_outlined, color: colors.textSecondary),
+                          color: placeholderBg,
+                          child: Icon(
+                            Icons.description_outlined,
+                            color: placeholderFg,
+                          ),
                         ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -71,7 +81,14 @@ class RecentDocumentTile extends StatelessWidget {
                       Row(
                         children: [
                           if (tagColor != null) ...[
-                            Container(width: 8, height: 8, decoration: BoxDecoration(color: tagColor, shape: BoxShape.circle)),
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: tagColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
                             const SizedBox(width: AppSpacing.xs),
                           ],
                           Expanded(
@@ -87,7 +104,8 @@ class RecentDocumentTile extends StatelessWidget {
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         '${document.pages.length} · ${DateFormat('yyyy-MM-dd HH:mm').format(document.createdAt)}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.textSecondary),
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: colors.textSecondary),
                       ),
                     ],
                   ),
@@ -97,11 +115,32 @@ class RecentDocumentTile extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Row(
               children: [
-                Expanded(child: _actionButton(context, Icons.visibility_outlined, viewLabel, onView)),
+                Expanded(
+                  child: _actionButton(
+                    context,
+                    Icons.visibility_outlined,
+                    viewLabel,
+                    onView,
+                  ),
+                ),
                 const SizedBox(width: AppSpacing.xs),
-                Expanded(child: _actionButton(context, Icons.description_outlined, toWordLabel, onToWord)),
+                Expanded(
+                  child: _actionButton(
+                    context,
+                    Icons.description_outlined,
+                    toWordLabel,
+                    onToWord,
+                  ),
+                ),
                 const SizedBox(width: AppSpacing.xs),
-                Expanded(child: _actionButton(context, Icons.share_outlined, shareLabel, onShare)),
+                Expanded(
+                  child: _actionButton(
+                    context,
+                    Icons.share_outlined,
+                    shareLabel,
+                    onShare,
+                  ),
+                ),
               ],
             ),
           ],
@@ -110,7 +149,12 @@ class RecentDocumentTile extends StatelessWidget {
     );
   }
 
-  Widget _actionButton(BuildContext context, IconData icon, String label, VoidCallback onTap) {
+  Widget _actionButton(
+    BuildContext context,
+    IconData icon,
+    String label,
+    VoidCallback onTap,
+  ) {
     final colors = AppColors.of(context);
     return OutlinedButton.icon(
       onPressed: onTap,
