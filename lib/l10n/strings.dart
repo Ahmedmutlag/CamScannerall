@@ -15,7 +15,9 @@ class AppStrings {
     'recent': {'ar': 'الأخيرة', 'en': 'Recent'},
     'noRecent': {'ar': 'ابدأ بمسح أول مستند لك', 'en': 'Start by scanning your first document'},
     'scan': {'ar': 'مسح ضوئي', 'en': 'Scan'},
+    'scanSubtitle': {'ar': 'مستند جديد بالكاميرا', 'en': 'New document with camera'},
     'importFile': {'ar': 'استيراد ملف', 'en': 'Import file'},
+    'importFileSubtitle': {'ar': 'PDF أو صورة موجودة', 'en': 'An existing PDF or image'},
     'view': {'ar': 'عرض', 'en': 'View'},
     'wordShort': {'ar': 'Word', 'en': 'Word'},
 

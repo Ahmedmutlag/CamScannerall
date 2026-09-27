@@ -146,10 +146,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: _toolButton(
+                          child: _toolCard(
                             context,
                             icon: Icons.document_scanner_outlined,
-                            label: s.t('scan'),
+                            title: s.t('scan'),
+                            subtitle: s.t('scanSubtitle'),
                             background: const Color(0xFFDCF5F0),
                             foreground: const Color(0xFF0E9384),
                             onTap: _scan,
@@ -157,10 +158,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
-                          child: _toolButton(
+                          child: _toolCard(
                             context,
                             icon: Icons.file_upload_outlined,
-                            label: s.t('importFile'),
+                            title: s.t('importFile'),
+                            subtitle: s.t('importFileSubtitle'),
                             background: const Color(0xFFE0EEFF),
                             foreground: const Color(0xFF2563EB),
                             onTap: _importFile,
@@ -206,29 +208,46 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _toolButton(
+  /// A big, colorful, tappable tile — the whole pastel card is the button
+  /// (no separate small icon-button in the corner), matching the reference
+  /// Ahmed sent while keeping the interaction simple on a phone screen.
+  Widget _toolCard(
     BuildContext context, {
     required IconData icon,
-    required String label,
+    required String title,
+    required String subtitle,
     required Color background,
     required Color foreground,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: AppRadius.radius,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 26,
-              backgroundColor: background,
-              child: Icon(icon, color: foreground),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(label, style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
-          ],
+    return Material(
+      color: background,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: Colors.white,
+                child: Icon(icon, color: foreground, size: 22),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: foreground.withValues(alpha: 0.85)),
+              ),
+            ],
+          ),
         ),
       ),
     );
