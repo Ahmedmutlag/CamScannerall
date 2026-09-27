@@ -8,6 +8,7 @@ import '../models/doc_page.dart';
 import '../models/document.dart';
 import '../models/folder.dart';
 import '../theme/app_colors.dart';
+import '../widgets/error_dialogs.dart';
 import '../widgets/full_page_preview.dart';
 import 'camera_screen.dart';
 import 'ocr_screen.dart';
@@ -83,8 +84,15 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     );
     if (result == null || result.isEmpty || !mounted) return;
     final appState = context.read<AppState>();
-    await appState.addPagesToDocument(doc, result);
-    setState(() {});
+    final s = appState.strings;
+    try {
+      await runWithBusyOverlay(context, () => appState.addPagesToDocument(doc, result));
+      if (mounted) setState(() {});
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('operationFailedGeneric'))));
+      }
+    }
   }
 
   Future<void> _setColor(int color) async {
@@ -105,18 +113,35 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
         ]),
       ),
     );
-    if (choice == null) return;
+    if (choice == null || !mounted) return;
     final paths = choice == 'high'
         ? doc.pages.map((p) => p.imagePathHighRes).toList()
         : doc.pages.map((p) => p.imagePathLowRes).toList();
-    final bytes = await appState.pdf.buildPdf(paths);
-    await appState.pdf.sharePdf(bytes, filename: '${doc.name}.pdf');
+    try {
+      await runWithBusyOverlay(context, () async {
+        final bytes = await appState.pdf.buildPdf(paths);
+        await appState.pdf.sharePdf(bytes, filename: '${doc.name}.pdf');
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('pdfBuildError'))));
+      }
+    }
   }
 
   Future<void> _print() async {
     final appState = context.read<AppState>();
-    final bytes = await appState.pdf.buildPdf(doc.pages.map((p) => p.imagePathHighRes).toList());
-    await appState.pdf.printBytes(bytes, name: doc.name);
+    final s = appState.strings;
+    try {
+      await runWithBusyOverlay(context, () async {
+        final bytes = await appState.pdf.buildPdf(doc.pages.map((p) => p.imagePathHighRes).toList());
+        await appState.pdf.printBytes(bytes, name: doc.name);
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('pdfBuildError'))));
+      }
+    }
   }
 
   /// The one deliberate, explicit exception to the app's "everything stays
@@ -173,15 +198,34 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
 
   Future<void> _toWord() async {
     final appState = context.read<AppState>();
-    final pagesText = doc.extractedText.isEmpty ? [''] : doc.extractedText.split('\n\n');
-    final bytes = appState.docx.buildDocx(title: doc.name, pagesText: pagesText);
-    await appState.share.shareBytes(bytes, '${doc.name}.docx',
-        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    final s = appState.strings;
+    try {
+      await runWithBusyOverlay(context, () async {
+        final pagesText = doc.extractedText.isEmpty ? [''] : doc.extractedText.split('\n\n');
+        final bytes = appState.docx.buildDocx(title: doc.name, pagesText: pagesText);
+        await appState.share.shareBytes(bytes, '${doc.name}.docx',
+            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('operationFailedGeneric'))));
+      }
+    }
   }
 
   Future<void> _toImages() async {
     final appState = context.read<AppState>();
-    await appState.share.shareFiles(doc.pages.map((p) => p.imagePathHighRes).toList());
+    final s = appState.strings;
+    try {
+      await runWithBusyOverlay(
+        context,
+        () => appState.share.shareFiles(doc.pages.map((p) => p.imagePathHighRes).toList()),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('operationFailedGeneric'))));
+      }
+    }
   }
 
   Future<void> _split() async {
@@ -207,15 +251,30 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
         ],
       ),
     );
-    if (index == null || index <= 0 || index >= doc.pages.length) return;
-    await appState.splitDocument(doc, index);
-    if (mounted) setState(() {});
+    if (index == null || index <= 0 || index >= doc.pages.length || !mounted) return;
+    try {
+      await runWithBusyOverlay(context, () => appState.splitDocument(doc, index));
+      if (mounted) setState(() {});
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('operationFailedGeneric'))));
+      }
+    }
   }
 
   Future<void> _compress() async {
     final appState = context.read<AppState>();
-    final bytes = await appState.pdf.compressPdf(doc.pages.map((p) => p.imagePathHighRes).toList());
-    await appState.pdf.sharePdf(bytes, filename: '${doc.name}_compressed.pdf');
+    final s = appState.strings;
+    try {
+      await runWithBusyOverlay(context, () async {
+        final bytes = await appState.pdf.compressPdf(doc.pages.map((p) => p.imagePathHighRes).toList());
+        await appState.pdf.sharePdf(bytes, filename: '${doc.name}_compressed.pdf');
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('pdfBuildError'))));
+      }
+    }
   }
 
   Future<void> _moveOrCopy({required bool move}) async {
@@ -261,7 +320,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
             child: ReorderableListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: pages.length,
-              onReorder: (oldIndex, newIndex) => appState.reorderPages(doc, oldIndex, newIndex),
+              onReorderItem: (oldIndex, newIndex) => appState.reorderPages(doc, oldIndex, newIndex),
               itemBuilder: (context, index) {
                 final page = pages[index];
                 return Padding(
@@ -293,8 +352,15 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                                       icon: Icons.rotate_right,
                                       tooltip: s.t('rotatePage'),
                                       onTap: () async {
-                                        await appState.rotatePage(doc, page);
-                                        setState(() {});
+                                        try {
+                                          await appState.rotatePage(doc, page);
+                                        } catch (_) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text(s.t('imageProcessingError'))));
+                                          }
+                                        }
+                                        if (mounted) setState(() {});
                                       },
                                     ),
                                     _pageToolButton(
@@ -304,15 +370,22 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                                         await Navigator.of(context).push(MaterialPageRoute(
                                           builder: (_) => PageCropScreen(document: doc, page: page),
                                         ));
-                                        setState(() {});
+                                        if (mounted) setState(() {});
                                       },
                                     ),
                                     _pageToolButton(
                                       icon: Icons.copy_all_outlined,
                                       tooltip: s.t('duplicatePage'),
                                       onTap: () async {
-                                        await appState.duplicatePage(doc, page);
-                                        setState(() {});
+                                        try {
+                                          await appState.duplicatePage(doc, page);
+                                        } catch (_) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text(s.t('imageProcessingError'))));
+                                          }
+                                        }
+                                        if (mounted) setState(() {});
                                       },
                                     ),
                                   ],

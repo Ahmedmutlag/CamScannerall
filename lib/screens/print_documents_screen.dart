@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../app_state.dart';
 import '../services/storage_paths.dart';
 import '../theme/app_colors.dart';
+import '../widgets/error_dialogs.dart';
 
 /// The kinds of official documents a print-shop customer typically brings
 /// in, each with its own colored slot card — see the reference screenshot
@@ -98,11 +99,13 @@ class _PrintDocumentsScreenState extends State<PrintDocumentsScreen> {
 
   Future<void> _scanSlot(IdSlot slot) async {
     setState(() => _busy = true);
+    final appState = context.read<AppState>();
+    final s = appState.strings;
+    var retry = false;
     try {
       final pictures = await CunningDocumentScanner.getPictures(noOfPages: 1);
       if (pictures == null || pictures.isEmpty || !mounted) return;
 
-      final appState = context.read<AppState>();
       final outDir = await StoragePaths.scansDirectory();
       final id = const Uuid().v4();
       final (highRes, _) = await appState.imageProcessing.processAndSave(
@@ -115,9 +118,30 @@ class _PrintDocumentsScreenState extends State<PrintDocumentsScreen> {
       final previous = _people[_activePerson].slotPaths[slot];
       if (previous != null) await _deleteQuietly(previous);
       _people[_activePerson].slotPaths[slot] = highRes;
+    } on CunningDocumentScannerException catch (e) {
+      if (!mounted) return;
+      final message = e.code == 'permission_denied'
+          ? s.t('scannerErrorPermission')
+          : s.t('scannerErrorGeneric');
+      retry = await showErrorDialog(
+        context,
+        title: s.t('scannerErrorTitle'),
+        message: message,
+        retryLabel: s.t('retry'),
+        dismissLabel: s.t('cancel'),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      await showErrorDialog(
+        context,
+        title: s.t('genericErrorTitle'),
+        message: s.t('imageProcessingError'),
+        dismissLabel: s.t('ok'),
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+    if (retry && mounted) await _scanSlot(slot);
   }
 
   Future<void> _deleteQuietly(String path) async {
@@ -143,6 +167,10 @@ class _PrintDocumentsScreenState extends State<PrintDocumentsScreen> {
     try {
       final bytes = await appState.pdf.buildPdf(paths);
       await appState.pdf.printBytes(bytes, name: s.t('printDocuments'));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('pdfBuildError'))));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }

@@ -43,8 +43,16 @@ class _PageCropScreenState extends State<PageCropScreen> {
   Future<void> _save() async {
     setState(() => _saving = true);
     final appState = context.read<AppState>();
-    await appState.cropPage(widget.document, widget.page, _rect);
-    if (mounted) Navigator.of(context).pop();
+    final s = appState.strings;
+    try {
+      await appState.cropPage(widget.document, widget.page, _rect);
+      if (mounted) Navigator.of(context).pop();
+    } catch (_) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('imageProcessingError'))));
+      }
+    }
   }
 
   void _updateRect(Rect newRect) {

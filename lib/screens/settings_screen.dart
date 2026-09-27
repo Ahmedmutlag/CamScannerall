@@ -46,25 +46,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (password == null || password.isEmpty) return;
 
     setState(() => _busy = true);
-    final bytes = await appState.backup.createBackup(password);
-    await appState.backup.markBackupDone();
-    setState(() => _busy = false);
-
-    if (!mounted) return;
-    await appState.share.shareBytes(bytes, 'backup_${DateTime.now().millisecondsSinceEpoch}.dsbackup');
-    if (!mounted) return;
-    final colors = AppColors.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: colors.accentBrass,
-      content: Row(
-        children: [
-          const Icon(Icons.check_circle_outline, color: Colors.white),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(child: Text(s.t('backupCreated'), style: const TextStyle(color: Colors.white))),
-        ],
-      ),
-    ));
-    setState(() {});
+    try {
+      final bytes = await appState.backup.createBackup(password);
+      await appState.backup.markBackupDone();
+      if (!mounted) return;
+      await appState.share.shareBytes(bytes, 'backup_${DateTime.now().millisecondsSinceEpoch}.dsbackup');
+      if (!mounted) return;
+      final colors = AppColors.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: colors.accentBrass,
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_outline, color: Colors.white),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(child: Text(s.t('backupCreated'), style: const TextStyle(color: Colors.white))),
+          ],
+        ),
+      ));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('backupCreateError'))));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _restoreBackup() async {
@@ -92,14 +97,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (confirmed != true) return;
 
     setState(() => _busy = true);
-    final bytes = await File(path).readAsBytes();
-    final resultStatus = await appState.backup.restoreBackup(bytes, password);
-    setState(() => _busy = false);
-
-    if (!mounted) return;
-    final message = resultStatus == BackupRestoreResult.success ? s.t('restoreSuccess') : s.t('wrongPassword');
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-    setState(() {});
+    try {
+      final bytes = await File(path).readAsBytes();
+      final resultStatus = await appState.backup.restoreBackup(bytes, password);
+      if (!mounted) return;
+      final message = resultStatus == BackupRestoreResult.success ? s.t('restoreSuccess') : s.t('wrongPassword');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('wrongPassword'))));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _chooseAutoBackupFolder() async {
@@ -186,31 +196,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const Divider(),
                 _sectionTitle(s.t('viewMode')),
-                RadioListTile<String>(
-                  value: 'grid',
+                RadioGroup<String>(
                   groupValue: settings.viewMode,
-                  title: Text(s.t('grid')),
                   onChanged: (v) => appState.setViewMode(v!),
-                ),
-                RadioListTile<String>(
-                  value: 'list',
-                  groupValue: settings.viewMode,
-                  title: Text(s.t('list')),
-                  onChanged: (v) => appState.setViewMode(v!),
+                  child: Column(
+                    children: [
+                      RadioListTile<String>(value: 'grid', title: Text(s.t('grid'))),
+                      RadioListTile<String>(value: 'list', title: Text(s.t('list'))),
+                    ],
+                  ),
                 ),
                 const Divider(),
                 _sectionTitle(s.t('language')),
-                RadioListTile<String>(
-                  value: 'ar',
+                RadioGroup<String>(
                   groupValue: settings.languageCode,
-                  title: const Text('العربية'),
                   onChanged: (v) => appState.setLanguage(v!),
-                ),
-                RadioListTile<String>(
-                  value: 'en',
-                  groupValue: settings.languageCode,
-                  title: const Text('English'),
-                  onChanged: (v) => appState.setLanguage(v!),
+                  child: Column(
+                    children: [
+                      RadioListTile<String>(value: 'ar', title: const Text('العربية')),
+                      RadioListTile<String>(value: 'en', title: const Text('English')),
+                    ],
+                  ),
                 ),
               ],
             ),

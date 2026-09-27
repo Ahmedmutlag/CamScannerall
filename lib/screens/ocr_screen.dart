@@ -21,12 +21,20 @@ class _OcrScreenState extends State<OcrScreen> {
   Future<void> _reextract() async {
     setState(() => _busy = true);
     final appState = context.read<AppState>();
-    final text = await appState.ocr.extractTextFromPages(
-      widget.document.pages.map((p) => p.imagePathHighRes).toList(),
-    );
-    widget.document.extractedText = text;
-    await widget.document.save();
-    if (mounted) setState(() => _busy = false);
+    final s = appState.strings;
+    try {
+      final text = await appState.ocr.extractTextFromPages(
+        widget.document.pages.map((p) => p.imagePathHighRes).toList(),
+      );
+      widget.document.extractedText = text;
+      await widget.document.save();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('ocrExtractError'))));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _copy() async {

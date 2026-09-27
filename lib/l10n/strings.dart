@@ -164,6 +164,39 @@ class AppStrings {
     'yes': {'ar': 'نعم', 'en': 'Yes'},
     'no': {'ar': 'لا', 'en': 'No'},
     'ok': {'ar': 'موافق', 'en': 'OK'},
+    'retry': {'ar': 'إعادة المحاولة', 'en': 'Retry'},
+
+    // Error dialogs / messages
+    'scannerErrorTitle': {'ar': 'تعذر تشغيل الماسح', 'en': 'Scanner unavailable'},
+    'scannerErrorPermission': {
+      'ar': 'يحتاج التطبيق إذن الكاميرا لمسح المستندات — فعّله من إعدادات الجهاز ثم أعد المحاولة.',
+      'en': 'The app needs camera permission to scan documents — enable it in device settings, then try again.',
+    },
+    'scannerErrorGeneric': {
+      'ar': 'تعذر تشغيل الماسح الضوئي على هذا الجهاز — أعد المحاولة، وإن تكرر الخطأ جرّب إعادة تشغيل الجهاز.',
+      'en': 'Could not start the scanner on this device — try again, and if it keeps happening, try restarting your device.',
+    },
+    'genericErrorTitle': {'ar': 'حدث خطأ', 'en': 'Something went wrong'},
+    'imageProcessingError': {
+      'ar': 'تعذّر معالجة الصورة. حاول مرة أخرى.',
+      'en': 'Could not process the image. Please try again.',
+    },
+    'pdfBuildError': {
+      'ar': 'تعذّر إنشاء ملف PDF. حاول مرة أخرى.',
+      'en': 'Could not build the PDF. Please try again.',
+    },
+    'operationFailedGeneric': {
+      'ar': 'تعذّر إتمام العملية. حاول مرة أخرى.',
+      'en': 'Could not complete the operation. Please try again.',
+    },
+    'backupCreateError': {
+      'ar': 'تعذّر إنشاء النسخة الاحتياطية. تأكد من توفر مساحة تخزين كافية وحاول مرة أخرى.',
+      'en': 'Could not create the backup. Make sure there is enough storage space and try again.',
+    },
+    'ocrExtractError': {
+      'ar': 'تعذّر استخراج النص من الصفحات.',
+      'en': 'Could not extract text from the pages.',
+    },
   };
 
   String t(String key) => _table[key]?[languageCode] ?? _table[key]?['en'] ?? key;

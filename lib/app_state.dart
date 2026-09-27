@@ -159,7 +159,7 @@ class AppState extends ChangeNotifier {
       highResPaths.add(pages[i].highRes);
     }
 
-    final extractedText = await ocr.extractTextFromPages(highResPaths);
+    final extractedText = await _tryExtractText(highResPaths) ?? '';
     final name = nameOverride ?? ocr.suggestName(extractedText, fallback: strings.t('documents'));
 
     final document = Document(
@@ -259,9 +259,11 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// [newIndex] must already be pre-adjusted for the removed item at
+  /// [oldIndex] — i.e. this expects `onReorderItem` semantics, not the
+  /// deprecated `onReorder` ones.
   Future<void> reorderPages(Document doc, int oldIndex, int newIndex) async {
     final pages = List<DocPage>.from(doc.pages);
-    if (newIndex > oldIndex) newIndex -= 1;
     final page = pages.removeAt(oldIndex);
     pages.insert(newIndex, page);
     for (var i = 0; i < pages.length; i++) {
@@ -360,9 +362,24 @@ class AppState extends ChangeNotifier {
       order++;
     }
     doc.pages = [...doc.pages, ...newPages];
-    doc.extractedText = await ocr.extractTextFromPages(doc.pages.map((p) => p.imagePathHighRes).toList());
+    // Keeps the previous extracted text if re-OCR fails, rather than
+    // wiping out already-working search text over a transient OCR error.
+    final newText = await _tryExtractText(doc.pages.map((p) => p.imagePathHighRes).toList());
+    if (newText != null) doc.extractedText = newText;
     await doc.save();
     notifyListeners();
+  }
+
+  /// OCR text is a nice-to-have (search, suggested names) rather than a
+  /// hard requirement for a scan to save successfully, so a failure here is
+  /// logged and swallowed instead of blocking the whole save pipeline.
+  Future<String?> _tryExtractText(List<String> imagePaths) async {
+    try {
+      return await ocr.extractTextFromPages(imagePaths);
+    } catch (e) {
+      debugPrint('OCR extraction failed: $e');
+      return null;
+    }
   }
 
   Future<Document> splitDocument(Document doc, int splitAtIndex) async {

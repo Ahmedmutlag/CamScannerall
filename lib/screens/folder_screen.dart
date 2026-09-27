@@ -9,6 +9,7 @@ import '../models/folder.dart';
 import '../theme/app_colors.dart';
 import '../widgets/document_card.dart';
 import '../widgets/empty_state_view.dart';
+import '../widgets/error_dialogs.dart';
 import 'camera_screen.dart';
 import 'document_detail_screen.dart';
 
@@ -34,17 +35,26 @@ class _FolderScreenState extends State<FolderScreen> {
     final appState = context.read<AppState>();
     final s = appState.strings;
 
-    final (doc, duplicate) = await appState.createDocumentFromPages(
-      folderId: widget.folder.id,
-      pages: result,
-    );
+    Document doc;
+    Document? duplicate;
+    try {
+      (doc, duplicate) = await runWithBusyOverlay(
+        context,
+        () => appState.createDocumentFromPages(folderId: widget.folder.id, pages: result),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('operationFailedGeneric'))));
+      }
+      return;
+    }
 
     if (duplicate != null && mounted) {
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(s.t('duplicateFound')),
-          content: Text('${s.t('duplicateBody')}\n\n"${duplicate.name}"'),
+          content: Text('${s.t('duplicateBody')}\n\n"${duplicate!.name}"'),
           actions: [
             FilledButton(onPressed: () => Navigator.pop(context), child: Text(s.t('ok'))),
           ],
@@ -114,31 +124,58 @@ class _FolderScreenState extends State<FolderScreen> {
 
   Future<void> _mergeSelectedToPdf(List<Document> allDocs) async {
     final appState = context.read<AppState>();
+    final s = appState.strings;
     final docs = allDocs.where((d) => _selectedIds.contains(d.id)).toList();
     if (docs.length < 2) return;
-    final bytes = await appState.mergeDocumentsToPdf(docs);
-    await appState.pdf.sharePdf(bytes, filename: '${widget.folder.name}_merged.pdf');
-    setState(() {
-      _selectionMode = false;
-      _selectedIds.clear();
-    });
+    try {
+      await runWithBusyOverlay(context, () async {
+        final bytes = await appState.mergeDocumentsToPdf(docs);
+        await appState.pdf.sharePdf(bytes, filename: '${widget.folder.name}_merged.pdf');
+      });
+      setState(() {
+        _selectionMode = false;
+        _selectedIds.clear();
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('pdfBuildError'))));
+      }
+    }
   }
 
   Future<void> _exportBatch(List<Document> docs) async {
     final appState = context.read<AppState>();
-    final files = <String, Uint8List>{};
-    for (final doc in docs) {
-      final bytes = await appState.pdf.buildPdf(doc.pages.map((p) => p.imagePathHighRes).toList());
-      files['${doc.name}.pdf'] = bytes;
+    final s = appState.strings;
+    try {
+      await runWithBusyOverlay(context, () async {
+        final files = <String, Uint8List>{};
+        for (final doc in docs) {
+          final bytes = await appState.pdf.buildPdf(doc.pages.map((p) => p.imagePathHighRes).toList());
+          files['${doc.name}.pdf'] = bytes;
+        }
+        final zip = appState.export.buildZip(files);
+        await appState.share.shareBytes(zip, 'export.zip', mimeType: 'application/zip');
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('pdfBuildError'))));
+      }
     }
-    final zip = appState.export.buildZip(files);
-    await appState.share.shareBytes(zip, 'export.zip', mimeType: 'application/zip');
   }
 
   Future<void> _exportIndex(List<Document> docs) async {
     final appState = context.read<AppState>();
-    final bytes = appState.export.buildTextIndex(widget.folder.name, docs);
-    await appState.share.shareBytes(bytes, '${widget.folder.name}_index.txt', mimeType: 'text/plain');
+    final s = appState.strings;
+    try {
+      await runWithBusyOverlay(context, () async {
+        final bytes = appState.export.buildTextIndex(widget.folder.name, docs);
+        await appState.share.shareBytes(bytes, '${widget.folder.name}_index.txt', mimeType: 'text/plain');
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('operationFailedGeneric'))));
+      }
+    }
   }
 
   @override

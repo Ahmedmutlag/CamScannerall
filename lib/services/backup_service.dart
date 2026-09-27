@@ -61,16 +61,26 @@ class BackupService {
   /// Silently writes an internally-encrypted backup into the configured
   /// folder if one is set and a backup is due. Returns true if a backup
   /// was actually written.
+  ///
+  /// This runs during app startup (see [AppState.init]), before the first
+  /// frame — a failure here (disk full, folder no longer writable, etc.)
+  /// must never crash the whole app before it can even open, so it's caught
+  /// and logged rather than left to propagate.
   Future<bool> maybeRunAutomaticBackup() async {
     final folderPath = _db.settings.autoBackupFolderPath;
     if (folderPath == null || folderPath.isEmpty || !autoBackupDue) return false;
 
-    final key = await _getOrCreateAutoBackupKey();
-    final bytes = await createBackup(key);
-    final file = File('$folderPath/$autoBackupFileName');
-    await file.writeAsBytes(bytes, flush: true);
-    await markBackupDone();
-    return true;
+    try {
+      final key = await _getOrCreateAutoBackupKey();
+      final bytes = await createBackup(key);
+      final file = File('$folderPath/$autoBackupFileName');
+      await file.writeAsBytes(bytes, flush: true);
+      await markBackupDone();
+      return true;
+    } catch (e) {
+      debugPrint('Automatic backup failed: $e');
+      return false;
+    }
   }
 
   /// Restores from the automatic backup file in the configured folder,
@@ -167,70 +177,75 @@ class BackupService {
     final manifestFile = archive.findFile('manifest.json');
     if (manifestFile == null) return BackupRestoreResult.wrongPasswordOrCorrupted;
 
-    final Map<String, dynamic> manifest =
-        jsonDecode(utf8.decode(manifestFile.content as List<int>)) as Map<String, dynamic>;
+    try {
+      final Map<String, dynamic> manifest =
+          jsonDecode(utf8.decode(manifestFile.content as List<int>)) as Map<String, dynamic>;
 
-    final scansDir = await StoragePaths.scansDirectory();
+      final scansDir = await StoragePaths.scansDirectory();
 
-    // Replace local data: restoring is meant for the "lost/reinstalled
-    // device" scenario, so we start from a clean slate.
-    for (final doc in _db.allDocuments) {
-      await _db.deleteDocument(doc.id);
-    }
-    for (final folder in _db.allFolders) {
-      await _db.foldersBox.delete(folder.id);
-    }
+      // Replace local data: restoring is meant for the "lost/reinstalled
+      // device" scenario, so we start from a clean slate.
+      for (final doc in _db.allDocuments) {
+        await _db.deleteDocument(doc.id);
+      }
+      for (final folder in _db.allFolders) {
+        await _db.foldersBox.delete(folder.id);
+      }
 
-    for (final f in (manifest['folders'] as List)) {
-      final map = f as Map<String, dynamic>;
-      await _db.addFolder(Folder(
-        id: map['id'] as String,
-        name: map['name'] as String,
-        colorTag: map['colorTag'] as int?,
-        createdAt: DateTime.parse(map['createdAt'] as String),
-      ));
-    }
-
-    for (final d in (manifest['documents'] as List)) {
-      final map = d as Map<String, dynamic>;
-      final pages = <DocPage>[];
-      for (final p in (map['pages'] as List)) {
-        final pMap = p as Map<String, dynamic>;
-        final pageId = pMap['id'] as String? ?? const Uuid().v4();
-        final hiEntry = archive.findFile(pMap['hi'] as String);
-        final loEntry = archive.findFile(pMap['lo'] as String);
-        final hiPath = '${scansDir.path}/${pageId}_hi.jpg';
-        final loPath = '${scansDir.path}/${pageId}_lo.jpg';
-        if (hiEntry != null) {
-          await File(hiPath).writeAsBytes(hiEntry.content as List<int>);
-        }
-        if (loEntry != null) {
-          await File(loPath).writeAsBytes(loEntry.content as List<int>);
-        }
-        pages.add(DocPage(
-          id: pageId,
-          documentId: map['id'] as String,
-          imagePathHighRes: hiPath,
-          imagePathLowRes: loPath,
-          order: pMap['order'] as int? ?? 0,
+      for (final f in (manifest['folders'] as List)) {
+        final map = f as Map<String, dynamic>;
+        await _db.addFolder(Folder(
+          id: map['id'] as String,
+          name: map['name'] as String,
+          colorTag: map['colorTag'] as int?,
+          createdAt: DateTime.parse(map['createdAt'] as String),
         ));
       }
-      await _db.addDocument(Document(
-        id: map['id'] as String,
-        folderId: map['folderId'] as String,
-        name: map['name'] as String,
-        pages: pages,
-        extractedText: map['extractedText'] as String? ?? '',
-        createdAt: DateTime.parse(map['createdAt'] as String),
-        colorTag: map['colorTag'] as int?,
-      ));
+
+      for (final d in (manifest['documents'] as List)) {
+        final map = d as Map<String, dynamic>;
+        final pages = <DocPage>[];
+        for (final p in (map['pages'] as List)) {
+          final pMap = p as Map<String, dynamic>;
+          final pageId = pMap['id'] as String? ?? const Uuid().v4();
+          final hiEntry = archive.findFile(pMap['hi'] as String);
+          final loEntry = archive.findFile(pMap['lo'] as String);
+          final hiPath = '${scansDir.path}/${pageId}_hi.jpg';
+          final loPath = '${scansDir.path}/${pageId}_lo.jpg';
+          if (hiEntry != null) {
+            await File(hiPath).writeAsBytes(hiEntry.content as List<int>);
+          }
+          if (loEntry != null) {
+            await File(loPath).writeAsBytes(loEntry.content as List<int>);
+          }
+          pages.add(DocPage(
+            id: pageId,
+            documentId: map['id'] as String,
+            imagePathHighRes: hiPath,
+            imagePathLowRes: loPath,
+            order: pMap['order'] as int? ?? 0,
+          ));
+        }
+        await _db.addDocument(Document(
+          id: map['id'] as String,
+          folderId: map['folderId'] as String,
+          name: map['name'] as String,
+          pages: pages,
+          extractedText: map['extractedText'] as String? ?? '',
+          createdAt: DateTime.parse(map['createdAt'] as String),
+          colorTag: map['colorTag'] as int?,
+        ));
+      }
+
+      final settings = _db.settings;
+      settings.lastBackupDate = DateTime.now();
+      await _db.saveSettings(settings);
+
+      return BackupRestoreResult.success;
+    } catch (e) {
+      debugPrint('Backup restore failed while applying manifest: $e');
+      return BackupRestoreResult.wrongPasswordOrCorrupted;
     }
-
-    final settings = _db.settings;
-    settings.lastBackupDate = DateTime.now();
-    await _db.saveSettings(settings);
-
-    return BackupRestoreResult.success;
   }
 
   Future<void> markBackupDone() async {

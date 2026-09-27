@@ -8,6 +8,7 @@ import '../app_state.dart';
 import '../models/document.dart';
 import '../theme/app_colors.dart';
 import '../widgets/empty_state_view.dart';
+import '../widgets/error_dialogs.dart';
 import '../widgets/full_page_preview.dart';
 import '../widgets/recent_document_tile.dart';
 import 'camera_screen.dart';
@@ -46,16 +47,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final appState = context.read<AppState>();
     final s = appState.strings;
-    final (doc, duplicate) = await appState.createDocumentFromPages(
-      pages: result,
-    );
+
+    Document doc;
+    Document? duplicate;
+    try {
+      (doc, duplicate) = await runWithBusyOverlay(
+        context,
+        () => appState.createDocumentFromPages(pages: result),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('operationFailedGeneric'))));
+      }
+      return;
+    }
 
     if (duplicate != null && mounted) {
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(s.t('duplicateFound')),
-          content: Text('${s.t('duplicateBody')}\n\n"${duplicate.name}"'),
+          content: Text('${s.t('duplicateBody')}\n\n"${duplicate!.name}"'),
           actions: [
             FilledButton(
               onPressed: () => Navigator.pop(context),
@@ -79,6 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     if (file == null || file.path == null || !mounted) return;
     final appState = context.read<AppState>();
+    final s = appState.strings;
 
     setState(() => _busy = true);
     try {
@@ -92,6 +105,10 @@ class _HomeScreenState extends State<HomeScreen> {
             builder: (_) => DocumentDetailScreen(document: doc),
           ),
         );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('operationFailedGeneric'))));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -118,26 +135,44 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _shareAsPdf(Document doc) async {
     final appState = context.read<AppState>();
-    final bytes = await appState.pdf.buildPdf(
-      doc.pages.map((p) => p.imagePathHighRes).toList(),
-    );
-    await appState.pdf.sharePdf(bytes, filename: '${doc.name}.pdf');
+    final s = appState.strings;
+    try {
+      await runWithBusyOverlay(context, () async {
+        final bytes = await appState.pdf.buildPdf(
+          doc.pages.map((p) => p.imagePathHighRes).toList(),
+        );
+        await appState.pdf.sharePdf(bytes, filename: '${doc.name}.pdf');
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('pdfBuildError'))));
+      }
+    }
   }
 
   Future<void> _toWord(Document doc) async {
     final appState = context.read<AppState>();
-    final pagesText = doc.extractedText.isEmpty
-        ? ['']
-        : doc.extractedText.split('\n\n');
-    final bytes = appState.docx.buildDocx(
-      title: doc.name,
-      pagesText: pagesText,
-    );
-    await appState.share.shareBytes(
-      bytes,
-      '${doc.name}.docx',
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    );
+    final s = appState.strings;
+    try {
+      await runWithBusyOverlay(context, () async {
+        final pagesText = doc.extractedText.isEmpty
+            ? ['']
+            : doc.extractedText.split('\n\n');
+        final bytes = appState.docx.buildDocx(
+          title: doc.name,
+          pagesText: pagesText,
+        );
+        await appState.share.shareBytes(
+          bytes,
+          '${doc.name}.docx',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        );
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('operationFailedGeneric'))));
+      }
+    }
   }
 
   @override

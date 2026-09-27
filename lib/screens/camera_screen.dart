@@ -11,6 +11,7 @@ import '../services/image_processing_service.dart';
 import '../services/storage_paths.dart';
 import '../theme/app_colors.dart';
 import '../widgets/empty_state_view.dart';
+import '../widgets/error_dialogs.dart';
 import '../widgets/full_page_preview.dart';
 
 /// The scan/capture screen. Capture itself is delegated to
@@ -32,11 +33,10 @@ class CameraScreen extends StatefulWidget {
   State<CameraScreen> createState() => _CameraScreenState();
 }
 
-enum _ScreenState { scanning, reviewing, error }
+enum _ScreenState { scanning, reviewing }
 
 class _CameraScreenState extends State<CameraScreen> {
   _ScreenState _state = _ScreenState.scanning;
-  String? _errorMessage;
   final List<String> _scannedPaths = [];
   ScanFilter _filter = ScanFilter.auto;
   bool _processing = false;
@@ -77,12 +77,27 @@ class _CameraScreenState extends State<CameraScreen> {
       }
     } on CunningDocumentScannerException catch (e) {
       if (!mounted) return;
-      setState(() {
-        _state = _ScreenState.error;
-        _errorMessage = e.code == 'permission_denied'
-            ? 'يحتاج التطبيق إذن الكاميرا لمسح المستندات — فعّله من إعدادات الجهاز ثم أعد المحاولة.'
-            : 'تعذر تشغيل الماسح الضوئي على هذا الجهاز — أعد المحاولة، وإن تكرر الخطأ جرّب إعادة تشغيل الجهاز.';
-      });
+      final s = context.read<AppState>().strings;
+      final message = e.code == 'permission_denied'
+          ? s.t('scannerErrorPermission')
+          : s.t('scannerErrorGeneric');
+      final shouldRetry = await showErrorDialog(
+        context,
+        title: s.t('scannerErrorTitle'),
+        message: message,
+        retryLabel: s.t('retry'),
+        dismissLabel: s.t('cancel'),
+      );
+      if (!mounted) return;
+      if (shouldRetry) {
+        await _startScan(limitPages: limitPages);
+        return;
+      }
+      if (_scannedPaths.isEmpty) {
+        Navigator.of(context).pop(<({String highRes, String lowRes})>[]);
+      } else {
+        setState(() => _state = _ScreenState.reviewing);
+      }
     }
   }
 
@@ -142,21 +157,34 @@ class _CameraScreenState extends State<CameraScreen> {
     }
     setState(() => _processing = true);
     final appState = context.read<AppState>();
+    final s = appState.strings;
     final outputs = <({String highRes, String lowRes})>[];
-    final outDir = await StoragePaths.scansDirectory();
-    for (final path in _scannedPaths) {
-      final pageId = const Uuid().v4();
-      // The scanner already cropped/perspective-corrected the page, so no
-      // corner data is passed here — only the chosen filter is applied.
-      final (hi, lo) = await appState.imageProcessing.processAndSave(
-        sourcePath: path,
-        outputDir: outDir.path,
-        pageId: pageId,
-        filter: _filter,
+    try {
+      final outDir = await StoragePaths.scansDirectory();
+      for (final path in _scannedPaths) {
+        final pageId = const Uuid().v4();
+        // The scanner already cropped/perspective-corrected the page, so no
+        // corner data is passed here — only the chosen filter is applied.
+        final (hi, lo) = await appState.imageProcessing.processAndSave(
+          sourcePath: path,
+          outputDir: outDir.path,
+          pageId: pageId,
+          filter: _filter,
+        );
+        outputs.add((highRes: hi, lowRes: lo));
+      }
+      await CunningDocumentScanner.cleanCache();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _processing = false);
+      await showErrorDialog(
+        context,
+        title: s.t('genericErrorTitle'),
+        message: s.t('imageProcessingError'),
+        dismissLabel: s.t('ok'),
       );
-      outputs.add((highRes: hi, lowRes: lo));
+      return;
     }
-    await CunningDocumentScanner.cleanCache();
 
     if (!mounted) return;
     Navigator.of(context).pop(outputs);
@@ -170,29 +198,6 @@ class _CameraScreenState extends State<CameraScreen> {
     switch (_state) {
       case _ScreenState.scanning:
         return const Scaffold(backgroundColor: Colors.black, body: Center(child: CircularProgressIndicator()));
-      case _ScreenState.error:
-        return Scaffold(
-          appBar: AppBar(title: Text(s.t('camera'))),
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: AppColors.of(context).error),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    _errorMessage ?? '',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.of(context).textSecondary),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  FilledButton(onPressed: () => _startScan(), child: Text(s.t('retake'))),
-                ],
-              ),
-            ),
-          ),
-        );
       case _ScreenState.reviewing:
         return Scaffold(
           appBar: AppBar(
