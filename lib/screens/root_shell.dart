@@ -6,8 +6,8 @@ import 'files_screen.dart';
 import 'home_screen.dart';
 import 'settings_screen.dart';
 
-/// Bottom-nav shell shown after unlock: Home (scan + recent), Files
-/// (folders), Settings — kept to three plain tabs on purpose.
+/// Bottom-nav shell: Home (scan + recent), Files (folders), Settings —
+/// kept to three plain tabs on purpose.
 class RootShell extends StatefulWidget {
   const RootShell({super.key});
 

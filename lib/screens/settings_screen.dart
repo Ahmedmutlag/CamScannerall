@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../services/backup_service.dart';
 import '../theme/app_colors.dart';
-import 'pin_setup_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -139,45 +138,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               children: [
-                _sectionTitle(s.t('security')),
-                ListTile(
-                  leading: const Icon(Icons.pin_outlined),
-                  title: Text(s.t('changePin')),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const PinSetupScreen(isFirstSetup: false)),
-                  ),
-                ),
-                FutureBuilder<bool>(
-                  future: appState.lock.biometricAvailable,
-                  builder: (context, snap) {
-                    if (snap.data != true) return const SizedBox.shrink();
-                    return SwitchListTile(
-                      secondary: const Icon(Icons.fingerprint),
-                      title: Text(s.t('enableBiometric')),
-                      value: settings.biometricEnabled,
-                      onChanged: (v) async {
-                        await appState.lock.setBiometricEnabled(v);
-                        setState(() {});
-                      },
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.timer_outlined),
-                  title: Text(s.t('autoLockMinutes')),
-                  trailing: DropdownButton<int>(
-                    value: settings.autoLockMinutes,
-                    items: const [1, 5, 15, 30, 60]
-                        .map((m) => DropdownMenuItem(value: m, child: Text('$m')))
-                        .toList(),
-                    onChanged: (v) async {
-                      if (v == null) return;
-                      await appState.lock.setAutoLockMinutes(v);
-                      setState(() {});
-                    },
-                  ),
-                ),
-                const Divider(),
                 _sectionTitle(s.t('backup')),
                 ListTile(
                   leading: const Icon(Icons.backup_outlined),

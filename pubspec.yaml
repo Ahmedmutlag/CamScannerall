@@ -39,9 +39,6 @@ dependencies:
   pdf: ^3.11.1
   printing: ^5.13.4
 
-  # Lock screen
-  local_auth: ^2.3.0
-
   # Local backup reminder notification
   flutter_local_notifications: ^18.0.1
 

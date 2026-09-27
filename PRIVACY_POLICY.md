@@ -1,6 +1,6 @@
 # سياسة الخصوصية — سكانر المستندات (CamScannerAll)
 
-**آخر تحديث:** 2026-09-13
+**آخر تحديث:** 2026-09-27
 
 هذا التطبيق **مجاني بالكامل**، ومصمم من الأساس بدون أي خادم (Backend) خاص
 بنا، وبدون حساب مستخدم، وبدون رفع أي من بياناتك لأي مكان، وبدون أي اتصال
@@ -13,7 +13,6 @@
 
 - صور أو ملفات المستندات التي تمسحها
 - النص المستخرج من مستنداتك (OCR)
-- رمز القفل (PIN) أو بيانات البصمة/الوجه
 - ملفات النسخ الاحتياطي أو كلمة سرها
 - اسمك أو بريدك الإلكتروني أو أي معرّف شخصي آخر
 - موقعك الجغرافي
@@ -27,8 +26,6 @@
 |---|---|
 | صور الصفحات الممسوحة | مجلد خاص بالتطبيق داخل جهازك (`scans/`) |
 | بيانات المجلدات والمستندات والفهرسة | قاعدة بيانات محلية (Hive) على جهازك |
-| رمز القفل (PIN) | مُشفَّر (hash) ومخزَّن محلياً؛ لا يُخزَّن كنص صريح |
-| بصمة الإصبع / الوجه | تُدار بالكامل عبر نظام التشغيل (Android/iOS)، ولا يصل التطبيق لبيانات البصمة نفسها إطلاقاً — فقط نتيجة "نجح/فشل" |
 | ملفات النسخ الاحتياطي | تُنشأ محلياً، مشفّرة (بكلمة سر تحددها أنت عند الإنشاء اليدوي، أو بمفتاح داخلي بجهازك عند التفعيل التلقائي)، وتُحفظ حيث تختار أنت — التطبيق لا يرفعها لأي مكان بنفسه |
 
 ## 3. استخراج النص (OCR)
@@ -42,7 +39,6 @@
 |---|---|
 | الكاميرا | لمسح المستندات فقط — لا تصوير أو تسجيل لأي غرض آخر |
 | الإشعارات | تذكير دوري محلي بعمل نسخة احتياطية (لا يحتوي أي بيانات شخصية) |
-| البصمة/التعرف على الوجه (اختياري) | فتح قفل التطبيق فقط، إن فعّلته أنت بنفسك من الإعدادات |
 | الوصول لملف عند الاستيراد/الاسترجاع | لقراءة الملف الذي تختاره أنت يدوياً (مستند تستورده، أو نسخة احتياطية تسترجعها) |
 
 ## 5. المشاركة مع أطراف ثالثة
@@ -84,7 +80,7 @@
 
 # Privacy Policy — Document Scanner (CamScannerAll) [English]
 
-**Last updated:** 2026-09-13
+**Last updated:** 2026-09-27
 
 This app is **completely free**, and built from the ground up with no
 backend server of our own, no user account, no upload of your data
@@ -98,7 +94,6 @@ collect, receive, or store any of the following:
 
 - Your scanned document images or files
 - OCR-extracted text from your documents
-- Your lock PIN or biometric data
 - Your backup files or their password
 - Your name, email, or any other personal identifier
 - Your geographic location
@@ -112,8 +107,6 @@ sandbox storage, which no other app can access.
 |---|---|
 | Scanned page images | A private folder inside the app on your device (`scans/`) |
 | Folder/document metadata & index | A local database (Hive) on your device |
-| Lock PIN | Stored locally as a salted hash, never as plain text |
-| Fingerprint / Face data | Handled entirely by your OS (Android/iOS); the app never receives the biometric data itself, only a pass/fail result |
 | Backup files | Generated locally, encrypted (with a password you choose for a manual backup, or a device-only internal key if you enable automatic backups), and saved wherever you pick — the app never uploads them itself |
 
 ## 3. Text recognition (OCR)
@@ -127,7 +120,6 @@ The app uses **Google ML Kit** for text recognition, running entirely
 |---|---|
 | Camera | Only to scan documents — never for any other recording |
 | Notifications | A local, periodic reminder to back up your data (contains no personal information) |
-| Biometrics (optional) | Only to unlock the app, if you enable it yourself in Settings |
 | File access on import/restore | To read a file you manually choose (a document you import, or a backup you restore) |
 
 ## 5. Third-party sharing

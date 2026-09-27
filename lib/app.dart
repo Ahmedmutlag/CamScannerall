@@ -3,47 +3,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'app_state.dart';
-import 'screens/lock_screen.dart';
 import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 
-final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
-
-class ScannerApp extends StatefulWidget {
+class ScannerApp extends StatelessWidget {
   const ScannerApp({super.key});
-
-  @override
-  State<ScannerApp> createState() => _ScannerAppState();
-}
-
-class _ScannerAppState extends State<ScannerApp> with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    final appState = context.read<AppState>();
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      appState.lock.markBackgrounded();
-    } else if (state == AppLifecycleState.resumed) {
-      final shouldLock = appState.lock.hasPin && appState.lock.shouldLockAfterIdle();
-      if (shouldLock) {
-        rootNavigatorKey.currentState?.push(
-          MaterialPageRoute(builder: (_) => const LockScreen(), fullscreenDialog: true),
-        );
-      }
-      appState.lock.markActive();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +15,6 @@ class _ScannerAppState extends State<ScannerApp> with WidgetsBindingObserver {
     final locale = Locale(appState.db.settings.languageCode);
 
     return MaterialApp(
-      navigatorKey: rootNavigatorKey,
       debugShowCheckedModeBanner: false,
       title: appState.strings.t('appName'),
       locale: locale,

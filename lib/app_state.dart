@@ -16,7 +16,6 @@ import 'services/duplicate_detection_service.dart';
 import 'services/export_service.dart';
 import 'services/gallery_service.dart';
 import 'services/image_processing_service.dart';
-import 'services/lock_service.dart';
 import 'services/notification_service.dart';
 import 'services/ocr_service.dart';
 import 'services/pdf_service.dart';
@@ -25,10 +24,9 @@ import 'services/storage_paths.dart';
 
 /// The single composition root: owns every service instance and exposes
 /// the cross-cutting operations screens need (folder/document CRUD, the
-/// capture -> OCR -> duplicate-check -> save pipeline, lock state).
+/// capture -> OCR -> duplicate-check -> save pipeline).
 class AppState extends ChangeNotifier {
   final DatabaseService db = DatabaseService.instance;
-  late final LockService lock = LockService(db);
   final OcrService ocr = OcrService();
   final ImageProcessingService imageProcessing = ImageProcessingService();
   final PdfService pdf = PdfService();

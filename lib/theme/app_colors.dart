@@ -22,9 +22,8 @@ class AppColors extends ThemeExtension<AppColors> {
   /// Primary buttons, important headings, active navigation icons.
   final Color primaryInk;
 
-  /// Reserved exclusively for security-related elements: lock icon,
-  /// "protected" badge, lock screen, successful-backup confirmation. Never
-  /// used as a generic decorative accent.
+  /// Reserved for a small set of meaningful confirmations (e.g. a
+  /// successful-backup snackbar). Never used as a generic decorative accent.
   final Color accentBrass;
 
   /// Live camera scan line, "saved successfully" indicator, completed-step

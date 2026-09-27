@@ -75,10 +75,6 @@ class AppStrings {
 
     // Settings
     'settings': {'ar': 'الإعدادات', 'en': 'Settings'},
-    'security': {'ar': 'الأمان', 'en': 'Security'},
-    'changePin': {'ar': 'تغيير رمز القفل', 'en': 'Change PIN'},
-    'enableBiometric': {'ar': 'تفعيل بصمة/وجه', 'en': 'Enable biometric'},
-    'autoLockMinutes': {'ar': 'القفل التلقائي بعد (دقائق)', 'en': 'Auto-lock after (minutes)'},
     'backup': {'ar': 'النسخ الاحتياطي', 'en': 'Backup'},
     'createBackup': {'ar': 'إنشاء نسخة احتياطية', 'en': 'Create backup'},
     'restoreBackup': {'ar': 'استرجاع من نسخة احتياطية', 'en': 'Restore from backup'},
@@ -101,23 +97,13 @@ class AppStrings {
       'en': 'Could not write to this folder. Try choosing a different one (e.g. Downloads).',
     },
 
-    // Lock
-    'setPin': {'ar': 'تحديد رمز القفل', 'en': 'Set a lock PIN'},
-    'enterPin': {'ar': 'أدخل رمز القفل', 'en': 'Enter PIN'},
-    'confirmPin': {'ar': 'تأكيد رمز القفل', 'en': 'Confirm PIN'},
-    'wrongPin': {'ar': 'رمز غير صحيح', 'en': 'Wrong PIN'},
-    'pinMismatch': {'ar': 'الرمزان غير متطابقين', 'en': 'PINs do not match'},
-    'unlockWithBiometric': {'ar': 'فتح بالبصمة', 'en': 'Unlock with biometric'},
-
     // Privacy / backup dialogs
-    'privacyWarningTitle': {'ar': 'تنبيه هام حول الخصوصية', 'en': 'Important privacy notice'},
     'privacyWarningBody': {
       'ar':
-          'كل بياناتك تُخزَّن على جهازك فقط ولا تُرفع لأي سيرفر. فقدان الجهاز أو نسيان رمز القفل بدون نسخة احتياطية يعني فقدان دائم لبياناتك. يُنصح بإنشاء نسخة احتياطية دورية من الإعدادات.',
+          'كل بياناتك تُخزَّن على جهازك فقط ولا تُرفع لأي سيرفر. فقدان الجهاز بدون نسخة احتياطية يعني فقدان دائم لبياناتك. يُنصح بإنشاء نسخة احتياطية دورية من الإعدادات.',
       'en':
-          'All your data is stored only on your device and never uploaded to any server. Losing your device or forgetting your PIN without a backup means permanent data loss. Please create backups regularly from Settings.',
+          'All your data is stored only on your device and never uploaded to any server. Losing your device without a backup means permanent data loss. Please create backups regularly from Settings.',
     },
-    'understood': {'ar': 'فهمت', 'en': 'Understood'},
     'backupPasswordHint': {'ar': 'كلمة سر النسخة الاحتياطية', 'en': 'Backup password'},
     'backupCreated': {'ar': 'تم إنشاء النسخة الاحتياطية بنجاح', 'en': 'Backup created successfully'},
     'backupReminderBody': {
