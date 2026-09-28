@@ -64,19 +64,29 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (duplicate != null && mounted) {
-      await showDialog<void>(
+      final viewExisting = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(s.t('duplicateFound')),
           content: Text('${s.t('duplicateBody')}\n\n"${duplicate!.name}"'),
           actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(s.t('viewExisting')),
+            ),
             FilledButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(context, false),
               child: Text(s.t('ok')),
             ),
           ],
         ),
       );
+      if (viewExisting == true && mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: duplicate!)),
+        );
+        return;
+      }
     }
     if (mounted) {
       Navigator.of(context).push(
@@ -114,6 +124,23 @@ class _HomeScreenState extends State<HomeScreen> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  /// Lets the Home "Recent" list delete a document directly, instead of
+  /// forcing a trip into the document's detail screen first just to reach
+  /// its delete button.
+  Future<void> _deleteDocument(Document doc) async {
+    final appState = context.read<AppState>();
+    final s = appState.strings;
+    final confirmed = await confirmDelete(
+      context,
+      title: s.t('deleteDocumentTitle'),
+      message: s.t('deleteDocumentBody'),
+      cancelLabel: s.t('cancel'),
+      deleteLabel: s.t('delete'),
+    );
+    if (!confirmed || !mounted) return;
+    await appState.deleteDocument(doc);
   }
 
   Future<void> _quickView(Document doc) async {
@@ -312,6 +339,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.search),
                       hintText: s.t('search'),
+                      suffixIcon: searching
+                          ? IconButton(
+                              icon: const Icon(Icons.close),
+                              tooltip: s.t('clearSearch'),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _query = '');
+                              },
+                            )
+                          : null,
                     ),
                   ),
                 ),
@@ -387,6 +424,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               viewLabel: s.t('view'),
                               toWordLabel: s.t('wordShort'),
                               shareLabel: s.t('share'),
+                              deleteLabel: s.t('delete'),
                               onTap: () => Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (_) =>
@@ -396,6 +434,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               onView: () => _quickView(doc),
                               onToWord: () => _toWord(doc),
                               onShare: () => _shareAsPdf(doc),
+                              onDelete: () => _deleteDocument(doc),
                             );
                           },
                         ),

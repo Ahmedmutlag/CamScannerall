@@ -158,6 +158,8 @@ class AppStrings {
       'ar': 'يبدو أن هذا المستند مطابق لمحتوى مستند آخر موجود بنفس المجلد.',
       'en': 'This document appears to match the content of another document in the same folder.',
     },
+    'viewExisting': {'ar': 'عرض المستند الموجود', 'en': 'View existing document'},
+    'clearSearch': {'ar': 'مسح البحث', 'en': 'Clear search'},
     'importFace2': {'ar': 'تصوير الوجه الثاني؟', 'en': 'Scan the back side?'},
     'importFace2Body': {
       'ar': 'يبدو أنك تصور بطاقة أو هوية. هل تريد تصوير الوجه الثاني الآن؟',

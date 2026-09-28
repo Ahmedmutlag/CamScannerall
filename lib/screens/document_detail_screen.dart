@@ -39,7 +39,8 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
   Future<void> _rename() async {
     final appState = context.read<AppState>();
     final s = appState.strings;
-    final controller = TextEditingController(text: doc.name);
+    final controller = TextEditingController(text: doc.name)
+      ..selection = TextSelection(baseOffset: 0, extentOffset: doc.name.length);
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(

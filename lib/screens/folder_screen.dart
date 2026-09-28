@@ -51,20 +51,50 @@ class _FolderScreenState extends State<FolderScreen> {
     }
 
     if (duplicate != null && mounted) {
-      await showDialog<void>(
+      final viewExisting = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(s.t('duplicateFound')),
           content: Text('${s.t('duplicateBody')}\n\n"${duplicate!.name}"'),
           actions: [
-            FilledButton(onPressed: () => Navigator.pop(context), child: Text(s.t('ok'))),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: Text(s.t('viewExisting'))),
+            FilledButton(onPressed: () => Navigator.pop(context, false), child: Text(s.t('ok'))),
           ],
         ),
       );
+      if (viewExisting == true && mounted) {
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: duplicate!)));
+        return;
+      }
     }
 
     if (mounted) {
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => DocumentDetailScreen(document: doc)));
+    }
+  }
+
+  Future<void> _renameFolder() async {
+    final appState = context.read<AppState>();
+    final s = appState.strings;
+    final controller = TextEditingController(text: widget.folder.name)
+      ..selection = TextSelection(baseOffset: 0, extentOffset: widget.folder.name.length);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(s.t('rename')),
+        content: TextField(controller: controller, autofocus: true),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(s.t('cancel'))),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: Text(s.t('save')),
+          ),
+        ],
+      ),
+    );
+    if (name != null && name.isNotEmpty && mounted) {
+      await appState.renameFolder(widget.folder, name);
+      setState(() {});
     }
   }
 
@@ -197,7 +227,9 @@ class _FolderScreenState extends State<FolderScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_selectionMode ? '${_selectedIds.length} ${s.t('selected')}' : widget.folder.name),
+        title: _selectionMode
+            ? Text('${_selectedIds.length} ${s.t('selected')}')
+            : GestureDetector(onTap: _renameFolder, child: Text(widget.folder.name)),
         leading: _selectionMode
             ? IconButton(
                 icon: const Icon(Icons.close),

@@ -18,20 +18,24 @@ class RecentDocumentTile extends StatelessWidget {
     required this.viewLabel,
     required this.toWordLabel,
     required this.shareLabel,
+    required this.deleteLabel,
     required this.onTap,
     required this.onView,
     required this.onToWord,
     required this.onShare,
+    required this.onDelete,
   });
 
   final Document document;
   final String viewLabel;
   final String toWordLabel;
   final String shareLabel;
+  final String deleteLabel;
   final VoidCallback onTap;
   final VoidCallback onView;
   final VoidCallback onToWord;
   final VoidCallback onShare;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +144,13 @@ class RecentDocumentTile extends StatelessWidget {
                     shareLabel,
                     onShare,
                   ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  tooltip: deleteLabel,
+                  visualDensity: VisualDensity.compact,
+                  onPressed: onDelete,
                 ),
               ],
             ),
