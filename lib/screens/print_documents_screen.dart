@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../app_state.dart';
 import '../services/storage_paths.dart';
 import '../theme/app_colors.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/error_dialogs.dart';
 
 /// The kinds of official documents a print-shop customer typically brings
@@ -232,6 +233,38 @@ class _PrintDocumentsScreenState extends State<PrintDocumentsScreen> {
     });
   }
 
+  /// Removes a person tab — e.g. after "Add person" was tapped by mistake.
+  /// Only asks for confirmation if that person actually has scanned
+  /// documents to lose; an accidentally-added empty tab is removed right
+  /// away. Always keeps at least one person tab.
+  Future<void> _removePerson(int index) async {
+    if (_people.length <= 1) return;
+    final person = _people[index];
+    if (person.slotPaths.isNotEmpty) {
+      final s = context.read<AppState>().strings;
+      final confirmed = await confirmDelete(
+        context,
+        title: s.t('deletePersonTitle'),
+        message: s.t('deletePersonBody'),
+        cancelLabel: s.t('cancel'),
+        deleteLabel: s.t('delete'),
+      );
+      if (!confirmed || !mounted) return;
+      for (final path in person.slotPaths.values) {
+        await _deleteQuietly(path);
+      }
+    }
+    setState(() {
+      _people.removeAt(index);
+      if (_activePerson == index) {
+        _activePerson = index.clamp(0, _people.length - 1);
+      } else if (_activePerson > index) {
+        _activePerson -= 1;
+      }
+    });
+    _syncUnsavedFlag();
+  }
+
   @override
   void dispose() {
     // Best-effort cleanup if the user leaves without an explicit reset —
@@ -285,11 +318,15 @@ class _PrintDocumentsScreenState extends State<PrintDocumentsScreen> {
                         for (var i = 0; i < _people.length; i++)
                           Padding(
                             padding: const EdgeInsets.only(left: AppSpacing.sm),
-                            child: ChoiceChip(
+                            child: InputChip(
                               label: Text('${s.t('person')} ${i + 1}'),
                               selected: _activePerson == i,
                               onSelected: (_) =>
                                   setState(() => _activePerson = i),
+                              deleteIcon: const Icon(Icons.close, size: 16),
+                              onDeleted: _people.length > 1
+                                  ? () => _removePerson(i)
+                                  : null,
                             ),
                           ),
                         if (_people.length < _maxPeople)

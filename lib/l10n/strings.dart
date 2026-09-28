@@ -228,6 +228,12 @@ class AppStrings {
       'en': "You have scanned documents in Print Documents that haven't been saved yet. Exiting now will permanently delete them, since this section never saves data automatically.",
     },
     'exitAnyway': {'ar': 'خروج على أي حال', 'en': 'Exit anyway'},
+
+    'deletePersonTitle': {'ar': 'حذف هذا الشخص؟', 'en': 'Remove this person?'},
+    'deletePersonBody': {
+      'ar': 'سيُحذف كل ما تم تصويره لهذا الشخص نهائياً ولا يمكن التراجع عن هذا الإجراء.',
+      'en': 'Everything scanned for this person will be permanently deleted. This cannot be undone.',
+    },
   };
 
   String t(String key) => _table[key]?[languageCode] ?? _table[key]?['en'] ?? key;
