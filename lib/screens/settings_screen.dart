@@ -136,6 +136,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _cleanUpFiles() async {
+    final appState = context.read<AppState>();
+    final s = appState.strings;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(s.t('cleanUpFilesTitle')),
+        content: Text(s.t('cleanUpFilesBody')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(s.t('cancel'))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(s.t('ok'))),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() => _busy = true);
+    try {
+      final removed = await appState.cleanUpOrphanedFiles();
+      if (!mounted) return;
+      final message = removed == 0 ? s.t('noFilesToClean') : '$removed ${s.t('filesRemoved')}';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('operationFailedGeneric'))));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
@@ -194,6 +225,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: AppColors.of(context).textSecondary,
                         ),
                   ),
+                ),
+                const Divider(),
+                _sectionTitle(s.t('storage')),
+                ListTile(
+                  leading: const Icon(Icons.cleaning_services_outlined),
+                  title: Text(s.t('cleanUpFiles')),
+                  onTap: _cleanUpFiles,
                 ),
                 const Divider(),
                 _sectionTitle(s.t('viewMode')),

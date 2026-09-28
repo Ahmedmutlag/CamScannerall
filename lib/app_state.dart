@@ -421,4 +421,13 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     return newDoc;
   }
+
+  /// One-off maintenance (Settings → "Clean up old files"): removes scan
+  /// images left behind before [deleteDocument]/[deletePage] started
+  /// cleaning up after themselves, or by an interrupted Print Documents
+  /// session. Returns how many files were removed.
+  Future<int> cleanUpOrphanedFiles() async {
+    final dir = await StoragePaths.scansDirectory();
+    return db.cleanUpOrphanedFiles(dir);
+  }
 }

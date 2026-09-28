@@ -123,6 +123,15 @@ class AppStrings {
       'ar': 'عند تحديد مجلد، ينشئ التطبيق نسخة احتياطية بصمت كل 60 يوماً بداخله تلقائياً، مشفّرة بمفتاح داخلي خاص بجهازك (بدون كلمة سر). ملاحظة مهمة: هذه النسخة تُستخدم فقط لاسترجاع بياناتك على نفس الجهاز — إن فقدت الجهاز فهي لا تُفتح من جهاز آخر. للنسخة القابلة للنقل بين الأجهزة استخدم "إنشاء نسخة احتياطية" بالأعلى.',
       'en': 'Once a folder is set, the app silently creates a backup inside it every 60 days, encrypted with a device-only internal key (no password). Important: this backup can only restore data on this same device — it cannot be opened on another device if you lose this one. For a portable backup, use "Create backup" above.',
     },
+    'storage': {'ar': 'التخزين', 'en': 'Storage'},
+    'cleanUpFiles': {'ar': 'تنظيف الملفات القديمة', 'en': 'Clean up old files'},
+    'cleanUpFilesTitle': {'ar': 'تنظيف الملفات القديمة؟', 'en': 'Clean up old files?'},
+    'cleanUpFilesBody': {
+      'ar': 'يحذف أي صورة غير مرتبطة بأي مستند محفوظ حالياً — عادة ملفات متراكمة من عمليات حذف سابقة. تنبيه: إذا كان عندك جلسة غير محفوظة بقسم "طباعة المستمسكات" حالياً، أنهها أو أعد ضبطها أولاً حتى لا تفقد صورها بالخطأ.',
+      'en': 'Removes any image not linked to a currently saved document — usually leftovers from earlier deletes. Warning: if you have an unsaved session in Print Documents right now, finish or reset it first so its images aren\'t removed by mistake.',
+    },
+    'filesRemoved': {'ar': 'ملف تم حذفه', 'en': 'files removed'},
+    'noFilesToClean': {'ar': 'لا توجد ملفات قديمة للتنظيف', 'en': 'No old files to clean up'},
     'autoBackupWriteError': {
       'ar': 'تعذّر الكتابة بهذا المجلد. جرّب اختيار مجلد آخر (مثل مجلد التنزيلات).',
       'en': 'Could not write to this folder. Try choosing a different one (e.g. Downloads).',

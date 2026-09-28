@@ -152,4 +152,34 @@ class DatabaseService {
         .toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
+
+  /// One-off maintenance: removes every file in [scansDir] that no
+  /// document currently references — debris from before [deleteDocument]
+  /// started cleaning up after itself, or a Print Documents session that
+  /// never got the chance to (e.g. the app was killed mid-session).
+  /// Returns how many files were removed.
+  Future<int> cleanUpOrphanedFiles(Directory scansDir) async {
+    if (!await scansDir.exists()) return 0;
+
+    final referenced = <String>{};
+    for (final doc in documentsBox.values) {
+      for (final page in doc.pages) {
+        referenced.add(page.imagePathHighRes);
+        referenced.add(page.imagePathLowRes);
+      }
+    }
+
+    var removed = 0;
+    await for (final entity in scansDir.list()) {
+      if (entity is! File) continue;
+      if (referenced.contains(entity.path)) continue;
+      try {
+        await entity.delete();
+        removed++;
+      } catch (_) {
+        // Best-effort — skip a file we can't remove (in use, permissions).
+      }
+    }
+    return removed;
+  }
 }
