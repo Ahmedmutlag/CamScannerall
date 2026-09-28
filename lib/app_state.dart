@@ -10,7 +10,6 @@ import 'models/app_settings.dart';
 import 'models/doc_page.dart';
 import 'models/document.dart';
 import 'models/folder.dart';
-import 'services/backup_service.dart';
 import 'services/database_service.dart';
 import 'services/docx_export_service.dart';
 import 'services/duplicate_detection_service.dart';
@@ -31,7 +30,6 @@ class AppState extends ChangeNotifier {
   final ImageProcessingService imageProcessing = ImageProcessingService();
   final PdfService pdf = PdfService();
   final DocxExportService docx = DocxExportService();
-  late final BackupService backup = BackupService(db);
   late final DuplicateDetectionService duplicates = DuplicateDetectionService(db);
   final ShareService share = ShareService();
   final ExportService export = ExportService();
@@ -46,22 +44,6 @@ class AppState extends ChangeNotifier {
   Future<void> init() async {
     await db.init();
     await _ensureDefaultFolder();
-
-    final hasAutoBackupFolder = (db.settings.autoBackupFolderPath ?? '').isNotEmpty;
-    if (hasAutoBackupFolder) {
-      await backup.maybeRunAutomaticBackup();
-    }
-  }
-
-  /// Whether the in-app backup reminder (bell badge on Home) should show —
-  /// only relevant when there's no auto-backup folder configured, since
-  /// that path already backs up silently on its own. Replaces a previous
-  /// OS notification for the same reminder, which showed a confusing
-  /// system badge/permission prompt for something only actionable inside
-  /// the app anyway.
-  bool get backupReminderDue {
-    final hasAutoBackupFolder = (db.settings.autoBackupFolderPath ?? '').isNotEmpty;
-    return !hasAutoBackupFolder && backup.autoBackupDue;
   }
 
   /// Every quick scan/import from the Home screen lands here unless the

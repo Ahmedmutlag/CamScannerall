@@ -1,6 +1,6 @@
 # سياسة الخصوصية — سكانر المستندات (CamScannerAll)
 
-**آخر تحديث:** 2026-09-27
+**آخر تحديث:** 2026-09-28
 
 هذا التطبيق **مجاني بالكامل**، ومصمم من الأساس بدون أي خادم (Backend) خاص
 بنا، وبدون حساب مستخدم، وبدون رفع أي من بياناتك لأي مكان، وبدون أي اتصال
@@ -13,7 +13,6 @@
 
 - صور أو ملفات المستندات التي تمسحها
 - النص المستخرج من مستنداتك (OCR)
-- ملفات النسخ الاحتياطي أو كلمة سرها
 - اسمك أو بريدك الإلكتروني أو أي معرّف شخصي آخر
 - موقعك الجغرافي
 
@@ -26,7 +25,6 @@
 |---|---|
 | صور الصفحات الممسوحة | مجلد خاص بالتطبيق داخل جهازك (`scans/`) |
 | بيانات المجلدات والمستندات والفهرسة | قاعدة بيانات محلية (Hive) على جهازك |
-| ملفات النسخ الاحتياطي | تُنشأ محلياً، مشفّرة (بكلمة سر تحددها أنت عند الإنشاء اليدوي، أو بمفتاح داخلي بجهازك عند التفعيل التلقائي)، وتُحفظ حيث تختار أنت — التطبيق لا يرفعها لأي مكان بنفسه |
 
 ## 3. استخراج النص (OCR)
 
@@ -38,8 +36,7 @@
 | الإذن | لماذا نحتاجه |
 |---|---|
 | الكاميرا | لمسح المستندات فقط — لا تصوير أو تسجيل لأي غرض آخر |
-| الإشعارات | تذكير دوري محلي بعمل نسخة احتياطية (لا يحتوي أي بيانات شخصية) |
-| الوصول لملف عند الاستيراد/الاسترجاع | لقراءة الملف الذي تختاره أنت يدوياً (مستند تستورده، أو نسخة احتياطية تسترجعها) |
+| الوصول لملف عند الاستيراد | لقراءة الملف الذي تختاره أنت يدوياً (مستند PDF أو صورة تستورده) |
 
 ## 5. المشاركة مع أطراف ثالثة
 
@@ -62,9 +59,11 @@
 - حذف التطبيق نفسه من جهازك يحذف كل بياناته معه بالكامل
 - لا توجد نسخة "على السيرفر" تبقى بعد الحذف، لأنه لا يوجد سيرفر أصلاً
 
-**تنبيه:** فقدان جهازك أو حذف التطبيق بدون عمل نسخة احتياطية يدوية مسبقاً
-يعني **فقدان دائم لبياناتك** — هذا مقصود لحماية خصوصيتك الكاملة، ولا يمكننا
-استرجاعها لك لأننا لا نملك نسخة منها أصلاً.
+**تنبيه:** فقدان جهازك، إعادة ضبطه للمصنع، أو حذف التطبيق منه يعني
+**فقدان دائم لبياناتك** — لا توجد أي نسخة أخرى منها بأي مكان (لا على
+جهازك ولا على أي سيرفر)، وهذا مقصود لحماية خصوصيتك الكاملة. التطبيق لا
+يوفّر حالياً ميزة نسخ احتياطي — إذا كان عندك مستندات مهمة، احتفظ بنسخة
+منها بطريقتك الخاصة (مشاركتها لنفسك، حفظها بمعرض الصور، إلخ).
 
 ## 7. خصوصية الأطفال
 
@@ -80,7 +79,7 @@
 
 # Privacy Policy — Document Scanner (CamScannerAll) [English]
 
-**Last updated:** 2026-09-27
+**Last updated:** 2026-09-28
 
 This app is **completely free**, and built from the ground up with no
 backend server of our own, no user account, no upload of your data
@@ -94,7 +93,6 @@ collect, receive, or store any of the following:
 
 - Your scanned document images or files
 - OCR-extracted text from your documents
-- Your backup files or their password
 - Your name, email, or any other personal identifier
 - Your geographic location
 
@@ -107,7 +105,6 @@ sandbox storage, which no other app can access.
 |---|---|
 | Scanned page images | A private folder inside the app on your device (`scans/`) |
 | Folder/document metadata & index | A local database (Hive) on your device |
-| Backup files | Generated locally, encrypted (with a password you choose for a manual backup, or a device-only internal key if you enable automatic backups), and saved wherever you pick — the app never uploads them itself |
 
 ## 3. Text recognition (OCR)
 
@@ -119,8 +116,7 @@ The app uses **Google ML Kit** for text recognition, running entirely
 | Permission | Why we need it |
 |---|---|
 | Camera | Only to scan documents — never for any other recording |
-| Notifications | A local, periodic reminder to back up your data (contains no personal information) |
-| File access on import/restore | To read a file you manually choose (a document you import, or a backup you restore) |
+| File access on import | To read a file you manually choose (a PDF or image you import) |
 
 ## 5. Third-party sharing
 
@@ -146,10 +142,12 @@ Since all your data is local to your device only:
 - Uninstalling the app deletes all its data with it
 - There is no "server copy" left behind, because there is no server
 
-**Note:** losing your device or deleting the app without having made a
-manual backup first means **permanent data loss** — this is intentional,
-to protect your complete privacy, and we cannot recover it for you since we
-never held a copy.
+**Note:** losing your device, factory-resetting it, or uninstalling the app
+means **permanent data loss** — no other copy exists anywhere (not on your
+device, not on any server), and this is intentional, to protect your
+complete privacy. The app does not currently offer a backup feature — if
+you have documents worth keeping, save a copy yourself however you prefer
+(share it to yourself, save it to your photo gallery, etc.).
 
 ## 7. Children's privacy
 

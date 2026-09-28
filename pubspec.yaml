@@ -19,12 +19,6 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
 
-  # Secure storage & crypto (PIN salt, automatic-backup key, backup file encryption)
-  flutter_secure_storage: ^11.1.1
-  encrypt: ^5.0.3
-  crypto: ^3.0.5
-  pointycastle: ^3.9.1
-
   # Camera & imaging
   image: ^4.3.0
   # Drives the native document scanner UI on each platform: Google ML Kit's
@@ -50,7 +44,7 @@ dependencies:
   permission_handler: ^11.3.1
   file_picker: ^12.3.0
 
-  # Backup packaging, batch export
+  # Batch export packaging (folder export as .zip)
   archive: ^4.0.9
 
   # Design system typography (bundled offline, see lib/theme/app_theme.dart)

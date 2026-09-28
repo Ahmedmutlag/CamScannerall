@@ -106,23 +106,10 @@ class AppStrings {
 
     // Settings
     'settings': {'ar': 'الإعدادات', 'en': 'Settings'},
-    'backup': {'ar': 'النسخ الاحتياطي', 'en': 'Backup'},
-    'createBackup': {'ar': 'إنشاء نسخة احتياطية', 'en': 'Create backup'},
-    'restoreBackup': {'ar': 'استرجاع من نسخة احتياطية', 'en': 'Restore from backup'},
-    'lastBackup': {'ar': 'آخر نسخة احتياطية', 'en': 'Last backup'},
-    'never': {'ar': 'لم تتم بعد', 'en': 'Never'},
     'viewMode': {'ar': 'وضع العرض الافتراضي', 'en': 'Default view mode'},
     'grid': {'ar': 'شبكي', 'en': 'Grid'},
     'list': {'ar': 'قائمة', 'en': 'List'},
     'language': {'ar': 'اللغة', 'en': 'Language'},
-    'autoBackup': {'ar': 'النسخ الاحتياطي التلقائي', 'en': 'Automatic backup'},
-    'autoBackupFolder': {'ar': 'مجلد النسخ التلقائي', 'en': 'Auto-backup folder'},
-    'autoBackupNotSet': {'ar': 'غير مُفعَّل', 'en': 'Not set up'},
-    'chooseFolder': {'ar': 'اختيار مجلد', 'en': 'Choose folder'},
-    'autoBackupExplain': {
-      'ar': 'عند تحديد مجلد، ينشئ التطبيق نسخة احتياطية بصمت كل 60 يوماً بداخله تلقائياً، مشفّرة بمفتاح داخلي خاص بجهازك (بدون كلمة سر). ملاحظة مهمة: هذه النسخة تُستخدم فقط لاسترجاع بياناتك على نفس الجهاز — إن فقدت الجهاز فهي لا تُفتح من جهاز آخر. للنسخة القابلة للنقل بين الأجهزة استخدم "إنشاء نسخة احتياطية" بالأعلى.',
-      'en': 'Once a folder is set, the app silently creates a backup inside it every 60 days, encrypted with a device-only internal key (no password). Important: this backup can only restore data on this same device — it cannot be opened on another device if you lose this one. For a portable backup, use "Create backup" above.',
-    },
     'storage': {'ar': 'التخزين', 'en': 'Storage'},
     'cleanUpFiles': {'ar': 'تنظيف الملفات القديمة', 'en': 'Clean up old files'},
     'cleanUpFilesTitle': {'ar': 'تنظيف الملفات القديمة؟', 'en': 'Clean up old files?'},
@@ -132,28 +119,6 @@ class AppStrings {
     },
     'filesRemoved': {'ar': 'ملف تم حذفه', 'en': 'files removed'},
     'noFilesToClean': {'ar': 'لا توجد ملفات قديمة للتنظيف', 'en': 'No old files to clean up'},
-    'autoBackupWriteError': {
-      'ar': 'تعذّر الكتابة بهذا المجلد. جرّب اختيار مجلد آخر (مثل مجلد التنزيلات).',
-      'en': 'Could not write to this folder. Try choosing a different one (e.g. Downloads).',
-    },
-
-    // Privacy / backup dialogs
-    'privacyWarningBody': {
-      'ar':
-          'كل بياناتك تُخزَّن على جهازك فقط ولا تُرفع لأي سيرفر. فقدان الجهاز بدون نسخة احتياطية يعني فقدان دائم لبياناتك. يُنصح بإنشاء نسخة احتياطية دورية من الإعدادات.',
-      'en':
-          'All your data is stored only on your device and never uploaded to any server. Losing your device without a backup means permanent data loss. Please create backups regularly from Settings.',
-    },
-    'backupPasswordHint': {'ar': 'كلمة سر النسخة الاحتياطية', 'en': 'Backup password'},
-    'backupCreated': {'ar': 'تم إنشاء النسخة الاحتياطية بنجاح', 'en': 'Backup created successfully'},
-    'backupReminderTitle': {'ar': 'تذكير النسخ الاحتياطي', 'en': 'Backup reminder'},
-    'later': {'ar': 'لاحقاً', 'en': 'Later'},
-    'backupReminderBody': {
-      'ar': 'مر وقت طويل منذ آخر نسخة احتياطية. يُنصح بإنشاء واحدة جديدة من الإعدادات.',
-      'en': "It's been a while since your last backup. Consider creating a new one from Settings.",
-    },
-    'restoreSuccess': {'ar': 'تم الاسترجاع بنجاح', 'en': 'Restored successfully'},
-    'wrongPassword': {'ar': 'كلمة السر غير صحيحة أو الملف تالف', 'en': 'Wrong password or corrupted file'},
 
     // Selection / batch actions
     'selectMode': {'ar': 'تحديد', 'en': 'Select'},
@@ -178,7 +143,6 @@ class AppStrings {
     'no': {'ar': 'لا', 'en': 'No'},
     'ok': {'ar': 'موافق', 'en': 'OK'},
     'retry': {'ar': 'إعادة المحاولة', 'en': 'Retry'},
-    'remove': {'ar': 'إزالة', 'en': 'Remove'},
 
     // Error dialogs / messages
     'scannerErrorTitle': {'ar': 'تعذر تشغيل الماسح', 'en': 'Scanner unavailable'},
@@ -202,10 +166,6 @@ class AppStrings {
     'operationFailedGeneric': {
       'ar': 'تعذّر إتمام العملية. حاول مرة أخرى.',
       'en': 'Could not complete the operation. Please try again.',
-    },
-    'backupCreateError': {
-      'ar': 'تعذّر إنشاء النسخة الاحتياطية. تأكد من توفر مساحة تخزين كافية وحاول مرة أخرى.',
-      'en': 'Could not create the backup. Make sure there is enough storage space and try again.',
     },
     'ocrExtractError': {
       'ar': 'تعذّر استخراج النص من الصفحات.',
