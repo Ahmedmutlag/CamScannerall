@@ -12,8 +12,10 @@ enum ScanFilter { original, blackAndWhite, color, auto }
 /// work always runs on a background isolate via [compute] so the UI never
 /// freezes.
 class ImageProcessingService {
-  static const int a4WidthPx = 1654; // ~200dpi at A4 width (8.27in)
-  static const int a4HeightPx = 2339; // ~200dpi at A4 height (11.69in)
+  // 300dpi — the standard target for sharp, OCR-grade text scans (the
+  // previous ~200dpi was visibly softer once printed or zoomed into).
+  static const int a4WidthPx = 2481; // 300dpi at A4 width (8.27in)
+  static const int a4HeightPx = 3508; // 300dpi at A4 height (11.69in)
   static const int lowResMaxDimension = 900;
 
   /// Processes a freshly captured/imported photo: applies perspective
@@ -132,7 +134,10 @@ Map<String, Uint8List> _cropIsolate(Map<String, dynamic> params) {
 }
 
 Map<String, Uint8List> _encodeHighAndLow(img.Image image) {
-  final highJpg = img.encodeJpg(image, quality: 92);
+  // Quality bumped from 92 — at the higher working resolution below, 92
+  // started showing visible JPEG blocking on fine text; 95 keeps files a
+  // reasonable size while avoiding that softening.
+  final highJpg = img.encodeJpg(image, quality: 95);
 
   final lowScale = ImageProcessingService.lowResMaxDimension /
       (image.width > image.height ? image.width : image.height);
@@ -210,7 +215,8 @@ img.Image _applyFilter(img.Image image, ScanFilter filter) {
     case ScanFilter.original:
       return image;
     case ScanFilter.color:
-      return img.adjustColor(image, contrast: 1.08, saturation: 1.1, brightness: 1.02);
+      final adjusted = img.adjustColor(image, contrast: 1.08, saturation: 1.1, brightness: 1.02);
+      return img.convolution(adjusted, filter: _sharpenKernel);
     case ScanFilter.blackAndWhite:
       // Normalizing first (per-image contrast stretch) makes the fixed
       // threshold below hold up across uneven lighting/shadows, instead of
