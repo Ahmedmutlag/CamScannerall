@@ -39,9 +39,6 @@ dependencies:
   pdf: ^3.11.1
   printing: ^5.13.4
 
-  # Local backup reminder notification
-  flutter_local_notifications: ^18.0.1
-
   # Sharing
   share_plus: ^13.3.0
 

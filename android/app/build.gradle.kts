@@ -12,10 +12,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-        // flutter_local_notifications (and some of its own dependencies) use
-        // Java 8+ APIs that need desugaring to run on older Android API
-        // levels — without this, Gradle refuses the build with
-        // "requires core library desugaring to be enabled".
+        // Some plugin dependencies use Java 8+ APIs that need desugaring to
+        // run on older Android API levels — without this, Gradle refuses
+        // the build with "requires core library desugaring to be enabled".
         isCoreLibraryDesugaringEnabled = true
     }
 

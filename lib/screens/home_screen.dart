@@ -184,6 +184,77 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// In-app replacement for the old OS backup-reminder notification — the
+  /// same reminder, but as a bottom sheet reachable from the bell icon
+  /// instead of a system notification/badge many users didn't understand.
+  Future<void> _showBackupReminder(BuildContext context, AppState appState) async {
+    final s = appState.strings;
+    final colors = AppColors.of(context);
+    final goToSettings = await showModalBottomSheet<bool>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.lg,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: colors.accentBrass.withValues(alpha: 0.15),
+                    child: Icon(Icons.notifications_outlined, color: colors.accentBrass),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Text(
+                      s.t('backupReminderTitle'),
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                s.t('backupReminderBody'),
+                style: TextStyle(color: colors.textSecondary, height: 1.5),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: Text(s.t('later')),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    flex: 2,
+                    child: FilledButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: Text(s.t('createBackup')),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (goToSettings == true && context.mounted) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
@@ -199,6 +270,16 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(s.t('appName')),
         actions: [
+          IconButton(
+            icon: Badge(
+              isLabelVisible: appState.backupReminderDue,
+              smallSize: 9,
+              backgroundColor: AppColors.of(context).error,
+              child: const Icon(Icons.notifications_outlined),
+            ),
+            tooltip: s.t('backup'),
+            onPressed: () => _showBackupReminder(context, appState),
+          ),
           IconButton(
             icon: const Icon(Icons.folder_outlined),
             tooltip: s.t('files'),

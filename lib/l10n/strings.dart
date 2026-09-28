@@ -137,6 +137,8 @@ class AppStrings {
     },
     'backupPasswordHint': {'ar': 'كلمة سر النسخة الاحتياطية', 'en': 'Backup password'},
     'backupCreated': {'ar': 'تم إنشاء النسخة الاحتياطية بنجاح', 'en': 'Backup created successfully'},
+    'backupReminderTitle': {'ar': 'تذكير النسخ الاحتياطي', 'en': 'Backup reminder'},
+    'later': {'ar': 'لاحقاً', 'en': 'Later'},
     'backupReminderBody': {
       'ar': 'مر وقت طويل منذ آخر نسخة احتياطية. يُنصح بإنشاء واحدة جديدة من الإعدادات.',
       'en': "It's been a while since your last backup. Consider creating a new one from Settings.",
