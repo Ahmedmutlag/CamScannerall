@@ -1,0 +1,14 @@
+# Copy this file to android/key.properties (same folder) and fill in your
+# own values. android/key.properties is gitignored — never commit it or
+# your .jks file; both hold the credentials that let you publish updates
+# to this app on the Play Store, and losing them means losing that ability
+# forever with no recovery.
+#
+# storeFile is resolved relative to android/app/, so the simplest setup is
+# to place your .jks file directly in android/app/ (also gitignored by
+# *.jks) and just name it here.
+
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=upload
+storeFile=upload-keystore.jks

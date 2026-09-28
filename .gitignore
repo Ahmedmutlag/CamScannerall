@@ -46,3 +46,10 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Release signing — never commit the real keystore or its passwords.
+# See android/key.properties.example for the format; copy it to
+# android/key.properties (gitignored) and fill in your own values.
+/android/key.properties
+*.jks
+*.keystore
