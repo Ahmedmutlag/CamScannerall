@@ -284,6 +284,10 @@ class AppState extends ChangeNotifier {
     }
     doc.pages = pages;
     await doc.save();
+    // Must run after the save above, so the orphan check (which scans
+    // every document's current pages) no longer sees this page as
+    // "still referenced" by its own now-updated parent document.
+    await db.deleteOrphanedPageFiles([page]);
     notifyListeners();
   }
 

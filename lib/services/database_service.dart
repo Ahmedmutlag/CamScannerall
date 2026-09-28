@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -89,8 +91,48 @@ class DatabaseService {
     await document.save();
   }
 
+  /// Deletes the document's record and, unless another document's page
+  /// still points at them (see [copyDocumentToFolder] below), its page
+  /// image files too — without this, every delete only freed the Hive
+  /// record while the actual JPEGs stayed on disk forever.
   Future<void> deleteDocument(String documentId) async {
+    final doc = documentsBox.get(documentId);
     await documentsBox.delete(documentId);
+    if (doc != null) await deleteOrphanedPageFiles(doc.pages);
+  }
+
+  /// A document created via [AppState.copyDocumentToFolder] shares its
+  /// pages' file paths with the original instead of duplicating the
+  /// files, so a path is only safe to delete once no page left in the
+  /// database (across every document) still references it. Called after
+  /// [deleteDocument] and after removing a single page (see
+  /// [AppState.deletePage]) — anywhere a page stops being referenced.
+  Future<void> deleteOrphanedPageFiles(List<DocPage> removedPages) async {
+    final stillReferenced = <String>{};
+    for (final doc in documentsBox.values) {
+      for (final page in doc.pages) {
+        stillReferenced.add(page.imagePathHighRes);
+        stillReferenced.add(page.imagePathLowRes);
+      }
+    }
+    for (final page in removedPages) {
+      if (!stillReferenced.contains(page.imagePathHighRes)) {
+        await _deleteFileQuietly(page.imagePathHighRes);
+      }
+      if (!stillReferenced.contains(page.imagePathLowRes)) {
+        await _deleteFileQuietly(page.imagePathLowRes);
+      }
+    }
+  }
+
+  Future<void> _deleteFileQuietly(String path) async {
+    try {
+      final file = File(path);
+      if (await file.exists()) await file.delete();
+    } catch (_) {
+      // Best-effort cleanup — a leftover file here isn't worth surfacing
+      // an error to the user over.
+    }
   }
 
   Document? documentById(String id) => documentsBox.get(id);
